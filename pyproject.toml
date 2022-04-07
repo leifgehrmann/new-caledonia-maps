@@ -7,9 +7,11 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-map-engraver = {git = "https://github.com/leifgehrmann/map-engraver.git"}
 pyproj = "^3.3.0"
 Shapely = "^1.8.1"
+map-engraver = {git = "https://github.com/leifgehrmann/map-engraver.git"}
+click = "^8.1.2"
+pyshp = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
