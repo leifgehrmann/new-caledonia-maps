@@ -31,6 +31,22 @@ from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 def render(
         dark: bool,
 ):
+    name = 'orthographic-light.svg'
+    england = (255, 18, 44)
+    france = (245, 245, 0)
+    netherlands = (255, 139, 7)
+    spain = (46, 194, 244)
+    portugal = (0, 201, 0)
+
+    bg_color = (1, 1, 1)
+    sea_color = (0/255, 101/255, 204/255)
+    land_color = (183/255, 218/255, 158/255)
+    if dark:
+        name = 'orthographic-dark.svg'
+        bg_color = (0, 0, 0)
+        sea_color = (0 / 255, 36 / 255, 125 / 255)
+        land_color = (76 / 255, 141 / 255, 146 / 255)
+
     # Extract shapefile data into multi-polygons
     data_path = Path(__file__).parent.parent.joinpath('data')
     land_shape_path = data_path.joinpath('ne_10m_land/ne_10m_land.shp')
@@ -63,7 +79,7 @@ def render(
     # Build the canvas
     Path(__file__).parent.parent.joinpath('output/') \
         .mkdir(parents=True, exist_ok=True)
-    path = Path(__file__).parent.parent.joinpath('output/orthographic.svg')
+    path = Path(__file__).parent.parent.joinpath('output/%s' % name)
     path.unlink(missing_ok=True)
     canvas_builder = CanvasBuilder()
     canvas_builder.set_path(path)
@@ -110,13 +126,12 @@ def render(
 
     # Finally, let's get to rendering stuff!
     background = Background()
-    background.color = (0/255, 0/255, 33/255)
+    background.color = bg_color
     background.draw(canvas)
 
     mask_canvas = ops.transform(proj_to_canvas, azimuthal_mask_ortho)
     polygon_drawer = PolygonDrawer()
-    # polygon_drawer.fill_color = (0/255, 101/255, 204/255)
-    polygon_drawer.fill_color = (0/255, 36/255, 125/255)
+    polygon_drawer.fill_color = sea_color
     polygon_drawer.geoms = [mask_canvas]
     polygon_drawer.draw(canvas)
 
@@ -126,8 +141,7 @@ def render(
     )
 
     polygon_drawer = PolygonDrawer()
-    # polygon_drawer.fill_color = (1, 1, 1)
-    polygon_drawer.fill_color = (76/255, 141/255, 146/255)
+    polygon_drawer.fill_color = land_color
     polygon_drawer.geoms = [land_shapes_canvas]
     polygon_drawer.draw(canvas)
 
