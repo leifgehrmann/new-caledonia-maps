@@ -30,7 +30,7 @@ orthographic-light: ## Generates the orthographic map in light-mode
 	poetry run python new_caledonia_maps/orthographic.py --light
 
 orthographic-dark: ## Generates the orthographic map in dark-mode
-	poetry run python ncn_milepost_openstreetmap_map/main.py --dark
+	poetry run python new_caledonia_maps/orthographic.py --dark
 
 lint: ## Checks for linting errors
 	poetry run flake8
