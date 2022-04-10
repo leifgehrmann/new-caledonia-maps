@@ -3,6 +3,9 @@ from typing import List
 
 import click
 import shapefile
+from map_engraver.data.osm import Parser
+from map_engraver.data.osm.filter import filter_elements
+from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
@@ -32,27 +35,33 @@ def render(
         dark: bool,
 ):
     name = 'orthographic-light.svg'
-    england = (255, 18, 44)
-    france = (245, 245, 0)
-    netherlands = (255, 139, 7)
-    spain = (46, 194, 244)
-    portugal = (0, 201, 0)
 
     bg_color = (1, 1, 1)
     sea_color = (0/255, 101/255, 204/255)
     land_color = (183/255, 218/255, 158/255)
+    england = (255 / 255, 170 / 255, 180 / 255)
+    france = (126 / 255, 222 / 255, 255 / 255)
+    netherlands = (255 / 255, 184 / 255, 105 / 255)
+    spain = (247 / 255, 255 / 255, 136 / 255)
+    portugal = (113 / 255, 255 / 255, 110 / 255)
     if dark:
         name = 'orthographic-dark.svg'
         bg_color = (0, 0, 0)
         sea_color = (0 / 255, 36 / 255, 125 / 255)
         land_color = (76 / 255, 141 / 255, 146 / 255)
+        england = (186 / 255, 90 / 255, 106 / 255)
+        france = (36 / 255, 153 / 255, 186 / 255)
+        netherlands = (151 / 255, 118 / 255, 55 / 255)
+        spain = (171 / 255, 203 / 255, 98 / 255)
+        portugal = (31 / 255, 179 / 255, 56 / 255)
 
     # Extract shapefile data into multi-polygons
     data_path = Path(__file__).parent.parent.joinpath('data')
-    land_shape_path = data_path.joinpath('ne_10m_land/ne_10m_land.shp')
-    lake_shape_path = data_path.joinpath('ne_10m_lakes/ne_10m_lakes.shp')
+    land_shape_path = data_path.joinpath('ne_50m_land/ne_50m_land.shp')
+    lake_shape_path = data_path.joinpath('ne_50m_lakes/ne_50m_lakes.shp')
+    borders_path = data_path.joinpath('borders.osm')
 
-    # Read world map shapefile
+    # Read land/lake map shapefile data
     def parse_shapefile(shapefile_path: Path):
         shapefile_collection = shapefile.Reader(shapefile_path.as_posix())
         shapely_objects = []
@@ -62,6 +71,22 @@ def render(
 
     land_shapes = parse_shapefile(land_shape_path)
     lake_shapes = parse_shapefile(lake_shape_path)
+
+    # Read borders data
+    osm_map = Parser.parse(borders_path)
+    osm_to_shapely = OsmToShapely(osm_map)
+    borders_en = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england', filter_nodes=False, filter_ways=False)
+    borders_es = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'spain', filter_nodes=False, filter_ways=False)
+    borders_fr = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'france', filter_nodes=False, filter_ways=False)
+    borders_pt = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'portugal', filter_nodes=False, filter_ways=False)
+    borders_nl = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'netherlands', filter_nodes=False, filter_ways=False)
+    borders_xx = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england/france', filter_nodes=False, filter_ways=False)
+    multi_polygon_en = osm_to_shapely.relation_to_multi_polygon(list(borders_en.relations.values())[0])
+    multi_polygon_es = osm_to_shapely.relation_to_multi_polygon(list(borders_es.relations.values())[0])
+    multi_polygon_fr = osm_to_shapely.relation_to_multi_polygon(list(borders_fr.relations.values())[0])
+    multi_polygon_pt = osm_to_shapely.relation_to_multi_polygon(list(borders_pt.relations.values())[0])
+    multi_polygon_nl = osm_to_shapely.relation_to_multi_polygon(list(borders_nl.relations.values())[0])
+    multi_polygon_xx = osm_to_shapely.relation_to_multi_polygon(list(borders_xx.relations.values())[0])
 
     # Invert CRS for shapes, because shapefiles are store coordinates are lon/lat,
     # not according to the ISO-approved standard.
@@ -92,7 +117,7 @@ def render(
     canvas = canvas_builder.build()
 
     # Now let's sort out the projection system
-    crs = CRS.from_proj4('+proj=ortho +lat_0=30 +lon_0=-40')
+    crs = CRS.from_proj4('+proj=ortho +lat_0=20 +lon_0=-50')
     azimuthal_mask_ortho = masks.azimuthal_mask(crs)
     azimuthal_mask_wgs84 = masks.azimuthal_mask_wgs84(crs)
     geo_to_canvas_scale = geo_canvas_ops.GeoCanvasScale(
@@ -122,7 +147,19 @@ def render(
     # Cull away unnecessary geometries, and subtract lakes from land.
     land_shapes = land_shapes.intersection(azimuthal_mask_wgs84)
     lake_shapes = lake_shapes.intersection(azimuthal_mask_wgs84)
+    multi_polygon_en = multi_polygon_en.intersection(azimuthal_mask_wgs84)
+    multi_polygon_es = multi_polygon_es.intersection(azimuthal_mask_wgs84)
+    multi_polygon_fr = multi_polygon_fr.intersection(azimuthal_mask_wgs84)
+    multi_polygon_pt = multi_polygon_pt.intersection(azimuthal_mask_wgs84)
+    multi_polygon_nl = multi_polygon_nl.intersection(azimuthal_mask_wgs84)
+    multi_polygon_xx = multi_polygon_xx.intersection(azimuthal_mask_wgs84)
     land_shapes = land_shapes.difference(lake_shapes)
+    multi_polygon_en = multi_polygon_en.intersection(land_shapes)
+    multi_polygon_es = multi_polygon_es.intersection(land_shapes)
+    multi_polygon_fr = multi_polygon_fr.intersection(land_shapes)
+    multi_polygon_pt = multi_polygon_pt.intersection(land_shapes)
+    multi_polygon_nl = multi_polygon_nl.intersection(land_shapes)
+    multi_polygon_xx = multi_polygon_xx.intersection(land_shapes)
 
     # Finally, let's get to rendering stuff!
     background = Background()
@@ -139,10 +176,36 @@ def render(
         wgs84_to_canvas,
         land_shapes
     )
+    multi_polygon_en_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_en)
+    multi_polygon_es_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_es)
+    multi_polygon_fr_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_fr)
+    multi_polygon_pt_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_pt)
+    multi_polygon_nl_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_nl)
+    multi_polygon_xx_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_xx)
 
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = land_color
     polygon_drawer.geoms = [land_shapes_canvas]
+    polygon_drawer.draw(canvas)
+
+    polygon_drawer = PolygonDrawer()
+    polygon_drawer.fill_color = england
+    polygon_drawer.geoms = [multi_polygon_en_canvas]
+    polygon_drawer.draw(canvas)
+    polygon_drawer.fill_color = spain
+    polygon_drawer.geoms = [multi_polygon_es_canvas]
+    polygon_drawer.draw(canvas)
+    polygon_drawer.fill_color = france
+    polygon_drawer.geoms = [multi_polygon_fr_canvas]
+    polygon_drawer.draw(canvas)
+    polygon_drawer.fill_color = portugal
+    polygon_drawer.geoms = [multi_polygon_pt_canvas]
+    polygon_drawer.draw(canvas)
+    polygon_drawer.fill_color = netherlands
+    polygon_drawer.geoms = [multi_polygon_nl_canvas]
+    polygon_drawer.draw(canvas)
+    polygon_drawer.fill_color = (0, 0, 0)
+    polygon_drawer.geoms = [multi_polygon_xx_canvas]
     polygon_drawer.draw(canvas)
 
     canvas.close()

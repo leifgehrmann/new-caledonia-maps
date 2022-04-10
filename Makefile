@@ -19,10 +19,10 @@ install: ## install dependencies
 	poetry install
 
 download_ne_data: ## Download data from natural earth
-	curl -o data/ne_10m_land.zip https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_land.zip
-	unzip -o -d data/ne_10m_land data/ne_10m_land.zip
-	curl -o data/ne_10m_lakes.zip https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_lakes.zip
-	unzip -o -d data/ne_10m_lakes data/ne_10m_lakes.zip
+	curl -o data/ne_50m_land.zip https://naturalearth.s3.amazonaws.com/50m_physical/ne_50m_land.zip
+	unzip -o -d data/ne_50m_land data/ne_50m_land.zip
+	curl -o data/ne_50m_lakes.zip https://naturalearth.s3.amazonaws.com/50m_physical/ne_50m_lakes.zip
+	unzip -o -d data/ne_50m_lakes data/ne_50m_lakes.zip
 
 orthographic: orthographic-light orthographic-dark  ## Generates the orthographic maps
 
