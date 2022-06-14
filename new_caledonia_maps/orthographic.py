@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from typing import List
 
@@ -6,6 +7,7 @@ import shapefile
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
+from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
@@ -207,6 +209,13 @@ def render(
     polygon_drawer.fill_color = (0, 0, 0)
     polygon_drawer.geoms = [multi_polygon_xx_canvas]
     polygon_drawer.draw(canvas)
+
+    stripe_polygon_drawer = StripeFilledPolygonDrawer()
+    stripe_polygon_drawer.geoms = [multi_polygon_xx_canvas]
+    stripe_polygon_drawer.stripe_angle = math.pi / 8
+    stripe_polygon_drawer.stripe_widths = [Cu.from_px(2), Cu.from_px(2)]
+    stripe_polygon_drawer.stripe_colors = [england, france]
+    stripe_polygon_drawer.draw(canvas)
 
     canvas.close()
 
