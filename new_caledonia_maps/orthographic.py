@@ -7,6 +7,7 @@ import shapefile
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
+from map_engraver.data.osm_shapely_ops.homogenize import geoms_to_multi_polygon
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape
@@ -79,6 +80,8 @@ def render(
     # Read borders data
     osm_map = Parser.parse(borders_path)
     osm_to_shapely = OsmToShapely(osm_map)
+    historic_water = filter_elements(osm_map, lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water', filter_nodes=False, filter_relations=False)
+    historic_land = filter_elements(osm_map, lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'land', filter_nodes=False, filter_relations=False)
     borders_sc = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'scotland', filter_nodes=False, filter_ways=False)
     borders_en = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england', filter_nodes=False, filter_ways=False)
     borders_es = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'spain', filter_nodes=False, filter_ways=False)
@@ -86,6 +89,8 @@ def render(
     borders_pt = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'portugal', filter_nodes=False, filter_ways=False)
     borders_nl = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'netherlands', filter_nodes=False, filter_ways=False)
     borders_xx = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england/france', filter_nodes=False, filter_ways=False)
+    polygons_water = list(map(lambda way: osm_to_shapely.way_to_polygon(way), list(historic_water.ways.values())))
+    polygons_land = list(map(lambda way: osm_to_shapely.way_to_polygon(way), list(historic_land.ways.values())))
     multi_polygon_sc = osm_to_shapely.relation_to_multi_polygon(list(borders_sc.relations.values())[0])
     multi_polygon_en = osm_to_shapely.relation_to_multi_polygon(list(borders_en.relations.values())[0])
     multi_polygon_es = osm_to_shapely.relation_to_multi_polygon(list(borders_es.relations.values())[0])
@@ -105,7 +110,10 @@ def render(
     land_shapes = transform_geoms_to_invert(land_shapes)
     lake_shapes = transform_geoms_to_invert(lake_shapes)
     land_shapes = ops.unary_union(land_shapes)
-    lake_shapes = ops.unary_union(lake_shapes)
+    # Add ancient lakes
+    lake_shapes = ops.unary_union(lake_shapes + polygons_water)
+    # Removed modern lakes and reservoirs
+    lake_shapes = lake_shapes.difference(ops.unary_union(polygons_land))
 
     # Build the canvas
     Path(__file__).parent.parent.joinpath('output/') \
@@ -168,6 +176,17 @@ def render(
     multi_polygon_pt = multi_polygon_pt.intersection(land_shapes)
     multi_polygon_nl = multi_polygon_nl.intersection(land_shapes)
     multi_polygon_xx = multi_polygon_xx.intersection(land_shapes)
+    land_shapes = geoms_to_multi_polygon(
+        land_shapes.difference(ops.unary_union([
+            multi_polygon_sc,
+            multi_polygon_en,
+            multi_polygon_es,
+            multi_polygon_fr,
+            multi_polygon_pt,
+            multi_polygon_nl,
+            multi_polygon_xx
+        ]))
+    )
 
     # Finally, let's get to rendering stuff!
     background = Background()
@@ -215,9 +234,6 @@ def render(
     polygon_drawer.draw(canvas)
     polygon_drawer.fill_color = netherlands
     polygon_drawer.geoms = [multi_polygon_nl_canvas]
-    polygon_drawer.draw(canvas)
-    polygon_drawer.fill_color = (0, 0, 0)
-    polygon_drawer.geoms = [multi_polygon_xx_canvas]
     polygon_drawer.draw(canvas)
 
     stripe_polygon_drawer = StripeFilledPolygonDrawer()
