@@ -41,6 +41,7 @@ def render(
     bg_color = (1, 1, 1)
     sea_color = (0/255, 101/255, 204/255)
     land_color = (183/255, 218/255, 158/255)
+    scotland = (255 / 255, 255 / 255, 255 / 255)
     england = (255 / 255, 170 / 255, 180 / 255)
     france = (126 / 255, 222 / 255, 255 / 255)
     netherlands = (255 / 255, 184 / 255, 105 / 255)
@@ -51,6 +52,7 @@ def render(
         bg_color = (0, 0, 0)
         sea_color = (0 / 255, 36 / 255, 125 / 255)
         land_color = (76 / 255, 141 / 255, 146 / 255)
+        scotland = (255 / 255, 255 / 255, 255 / 255)
         england = (186 / 255, 90 / 255, 106 / 255)
         france = (36 / 255, 153 / 255, 186 / 255)
         netherlands = (151 / 255, 118 / 255, 55 / 255)
@@ -77,12 +79,14 @@ def render(
     # Read borders data
     osm_map = Parser.parse(borders_path)
     osm_to_shapely = OsmToShapely(osm_map)
+    borders_sc = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'scotland', filter_nodes=False, filter_ways=False)
     borders_en = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england', filter_nodes=False, filter_ways=False)
     borders_es = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'spain', filter_nodes=False, filter_ways=False)
     borders_fr = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'france', filter_nodes=False, filter_ways=False)
     borders_pt = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'portugal', filter_nodes=False, filter_ways=False)
     borders_nl = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'netherlands', filter_nodes=False, filter_ways=False)
     borders_xx = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england/france', filter_nodes=False, filter_ways=False)
+    multi_polygon_sc = osm_to_shapely.relation_to_multi_polygon(list(borders_sc.relations.values())[0])
     multi_polygon_en = osm_to_shapely.relation_to_multi_polygon(list(borders_en.relations.values())[0])
     multi_polygon_es = osm_to_shapely.relation_to_multi_polygon(list(borders_es.relations.values())[0])
     multi_polygon_fr = osm_to_shapely.relation_to_multi_polygon(list(borders_fr.relations.values())[0])
@@ -149,6 +153,7 @@ def render(
     # Cull away unnecessary geometries, and subtract lakes from land.
     land_shapes = land_shapes.intersection(azimuthal_mask_wgs84)
     lake_shapes = lake_shapes.intersection(azimuthal_mask_wgs84)
+    multi_polygon_sc = multi_polygon_sc.intersection(azimuthal_mask_wgs84)
     multi_polygon_en = multi_polygon_en.intersection(azimuthal_mask_wgs84)
     multi_polygon_es = multi_polygon_es.intersection(azimuthal_mask_wgs84)
     multi_polygon_fr = multi_polygon_fr.intersection(azimuthal_mask_wgs84)
@@ -156,6 +161,7 @@ def render(
     multi_polygon_nl = multi_polygon_nl.intersection(azimuthal_mask_wgs84)
     multi_polygon_xx = multi_polygon_xx.intersection(azimuthal_mask_wgs84)
     land_shapes = land_shapes.difference(lake_shapes)
+    multi_polygon_sc = multi_polygon_sc.intersection(land_shapes)
     multi_polygon_en = multi_polygon_en.intersection(land_shapes)
     multi_polygon_es = multi_polygon_es.intersection(land_shapes)
     multi_polygon_fr = multi_polygon_fr.intersection(land_shapes)
@@ -178,6 +184,7 @@ def render(
         wgs84_to_canvas,
         land_shapes
     )
+    multi_polygon_sc_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_sc)
     multi_polygon_en_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_en)
     multi_polygon_es_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_es)
     multi_polygon_fr_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_fr)
@@ -191,6 +198,9 @@ def render(
     polygon_drawer.draw(canvas)
 
     polygon_drawer = PolygonDrawer()
+    polygon_drawer.fill_color = scotland
+    polygon_drawer.geoms = [multi_polygon_sc_canvas]
+    polygon_drawer.draw(canvas)
     polygon_drawer.fill_color = england
     polygon_drawer.geoms = [multi_polygon_en_canvas]
     polygon_drawer.draw(canvas)
