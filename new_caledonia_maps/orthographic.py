@@ -2,12 +2,14 @@ import math
 from pathlib import Path
 from typing import List
 
+import cairocffi.constants
 import click
 import shapefile
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.data.osm_shapely_ops.homogenize import geoms_to_multi_polygon
+from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape
@@ -48,6 +50,7 @@ def render(
     netherlands = (255 / 255, 184 / 255, 105 / 255)
     spain = (247 / 255, 255 / 255, 136 / 255)
     portugal = (113 / 255, 255 / 255, 110 / 255)
+    boat_path = (255 / 255, 255 / 255, 255 / 255)
     if dark:
         name = 'orthographic-dark.svg'
         bg_color = (0, 0, 0)
@@ -59,6 +62,7 @@ def render(
         netherlands = (151 / 255, 118 / 255, 55 / 255)
         spain = (171 / 255, 203 / 255, 98 / 255)
         portugal = (31 / 255, 179 / 255, 56 / 255)
+        boat_path = (200 / 255, 200 / 255, 200 / 255)
 
     # Extract shapefile data into multi-polygons
     data_path = Path(__file__).parent.parent.joinpath('data')
@@ -114,6 +118,10 @@ def render(
     lake_shapes = ops.unary_union(lake_shapes + polygons_water)
     # Removed modern lakes and reservoirs
     lake_shapes = lake_shapes.difference(ops.unary_union(polygons_land))
+
+    # Read boat route.
+    boat_way = filter_elements(osm_map, lambda _, way: 'name' in way.tags and way.tags['name'] == 'First Expedition', filter_nodes=False, filter_relations=False)
+    boat_linestring = osm_to_shapely.way_to_line_string(list(boat_way.ways.values())[0])
 
     # Build the canvas
     Path(__file__).parent.parent.joinpath('output/') \
@@ -242,6 +250,15 @@ def render(
     stripe_polygon_drawer.stripe_widths = [Cu.from_px(2), Cu.from_px(2)]
     stripe_polygon_drawer.stripe_colors = [england, france]
     stripe_polygon_drawer.draw(canvas)
+
+    boat_line_string_canvas = transform_interpolated_euclidean(wgs84_to_canvas, boat_linestring)
+    line_drawer = LineDrawer()
+    line_drawer.geoms = [boat_line_string_canvas]
+    line_drawer.stroke_color = boat_path
+    line_drawer.stroke_width = Cu.from_px(2)
+    canvas.context.set_dash([Cu.from_px(3).pt, Cu.from_px(3).pt], Cu.from_px(3).pt)
+    canvas.context.set_line_cap(cairocffi.constants.LINE_CAP_ROUND)
+    line_drawer.draw(canvas)
 
     canvas.close()
 
