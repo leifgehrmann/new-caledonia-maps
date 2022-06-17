@@ -11,6 +11,7 @@ from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.data.osm_shapely_ops.homogenize import geoms_to_multi_polygon
 from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
+from map_engraver.drawable.images.svg import Svg
 from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
@@ -41,6 +42,8 @@ def render(
 ):
     name = 'orthographic-light.svg'
 
+    img_path = Path(__file__).parent.parent.joinpath('img')
+
     bg_color = (1, 1, 1)
     sea_color = (0/255, 101/255, 204/255)
     land_color = (183/255, 218/255, 158/255)
@@ -51,6 +54,7 @@ def render(
     spain = (247 / 255, 255 / 255, 136 / 255)
     portugal = (113 / 255, 255 / 255, 110 / 255)
     boat_path = (255 / 255, 255 / 255, 255 / 255)
+    ship_side_path = img_path.joinpath('ship_side_light.svg')
     if dark:
         name = 'orthographic-dark.svg'
         bg_color = (0, 0, 0)
@@ -58,11 +62,12 @@ def render(
         land_color = (76 / 255, 141 / 255, 146 / 255)
         scotland = (255 / 255, 255 / 255, 255 / 255)
         england = (186 / 255, 90 / 255, 106 / 255)
-        france = (36 / 255, 153 / 255, 186 / 255)
+        france = (40 / 255, 160 / 255, 190 / 255)
         netherlands = (151 / 255, 118 / 255, 55 / 255)
         spain = (171 / 255, 203 / 255, 98 / 255)
         portugal = (31 / 255, 179 / 255, 56 / 255)
-        boat_path = (200 / 255, 200 / 255, 200 / 255)
+        boat_path = (184 / 255, 204 / 255, 255 / 255)
+        ship_side_path = img_path.joinpath('ship_side_dark.svg')
 
     # Extract shapefile data into multi-polygons
     data_path = Path(__file__).parent.parent.joinpath('data')
@@ -256,9 +261,17 @@ def render(
     line_drawer.geoms = [boat_line_string_canvas]
     line_drawer.stroke_color = boat_path
     line_drawer.stroke_width = Cu.from_px(2)
-    canvas.context.set_dash([Cu.from_px(3).pt, Cu.from_px(3).pt], Cu.from_px(3).pt)
+    canvas.context.set_dash([Cu.from_px(2).pt, Cu.from_px(3).pt], Cu.from_px(3).pt)
     canvas.context.set_line_cap(cairocffi.constants.LINE_CAP_ROUND)
     line_drawer.draw(canvas)
+
+    canvas.context.translate(*CanvasCoordinate.from_px(395, 302).pt)
+    canvas.context.rotate(-0.4)
+    svg_drawer = Svg(ship_side_path)
+    svg_drawer.width_on_canvas = Cu.from_px(50).pt
+    svg_drawer.height_on_canvas = Cu.from_px(35).pt
+    svg_drawer.origin_on_canvas = CanvasCoordinate.from_px(0, 0).pt
+    svg_drawer.draw(canvas)
 
     canvas.close()
 
