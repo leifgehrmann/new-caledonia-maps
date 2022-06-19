@@ -13,7 +13,7 @@ from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
 from map_engraver.drawable.layout.background import Background
-from shapely.geometry import shape
+from shapely.geometry import shape, Point
 from shapely.geometry.base import BaseGeometry
 
 from pyproj import CRS
@@ -261,16 +261,36 @@ def render(
     line_drawer.geoms = [boat_line_string_canvas]
     line_drawer.stroke_color = boat_path
     line_drawer.stroke_width = Cu.from_px(2)
-    canvas.context.set_dash([Cu.from_px(2).pt, Cu.from_px(3).pt], Cu.from_px(3).pt)
-    canvas.context.set_line_cap(cairocffi.constants.LINE_CAP_ROUND)
+    line_drawer.stroke_dashes = [Cu.from_px(2), Cu.from_px(3)], Cu.from_px(3)
+    line_drawer.stroke_line_cap = cairocffi.constants.LINE_CAP_ROUND
     line_drawer.draw(canvas)
 
-    canvas.context.translate(*CanvasCoordinate.from_px(395, 302).pt)
-    canvas.context.rotate(-0.4)
     svg_drawer = Svg(ship_side_path)
-    svg_drawer.width_on_canvas = Cu.from_px(50).pt
-    svg_drawer.height_on_canvas = Cu.from_px(35).pt
-    svg_drawer.origin_on_canvas = CanvasCoordinate.from_px(0, 0).pt
+    svg_drawer.width = Cu.from_px(50)
+    svg_drawer.height = Cu.from_px(35)
+    boat_position_perc = 0.6
+    boat_line_string_length = boat_line_string_canvas.length
+    boat_position: Point = boat_line_string_canvas.interpolate(
+        boat_line_string_length * boat_position_perc
+    )
+    boat_position_left: Point = boat_line_string_canvas.interpolate(
+        boat_line_string_length * boat_position_perc + svg_drawer.width.pt / 3
+    )
+    boat_position_right: Point = boat_line_string_canvas.interpolate(
+        boat_line_string_length * boat_position_perc - svg_drawer.width.pt / 3
+    )
+    svg_drawer.position = CanvasCoordinate.from_pt(
+        boat_position.x,
+        boat_position.y
+    )
+    svg_drawer.svg_origin = CanvasCoordinate(
+        svg_drawer.width / 2,
+        svg_drawer.height + line_drawer.stroke_width * 1.5,
+    )
+    svg_drawer.rotation = math.atan2(
+        boat_position_right.y - boat_position_left.y,
+        boat_position_right.x - boat_position_left.x
+    )
     svg_drawer.draw(canvas)
 
     canvas.close()
