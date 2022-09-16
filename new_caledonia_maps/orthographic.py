@@ -5,14 +5,19 @@ from typing import List
 import cairocffi.constants
 import click
 import shapefile
+from map_engraver.canvas.canvas_bbox import CanvasBbox
+from map_engraver.data.canvas_geometry.rect import rect
+from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask
+from map_engraver.data.geo_canvas_ops.geo_canvas_scale import GeoCanvasScale
+from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import GeoCanvasTransformersBuilder
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.data.osm_shapely_ops.homogenize import geoms_to_multi_polygon
 from map_engraver.drawable.geometry.line_drawer import LineDrawer
-from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
+from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import \
+    StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
-from map_engraver.drawable.layout.background import Background
 from shapely.geometry import shape, Point
 from shapely.geometry.base import BaseGeometry
 
@@ -22,7 +27,6 @@ from shapely import ops
 from map_engraver.canvas import CanvasBuilder
 from map_engraver.canvas.canvas_coordinate import CanvasCoordinate
 from map_engraver.canvas.canvas_unit import CanvasUnit as Cu
-from map_engraver.data import geo_canvas_ops
 from map_engraver.data.geo.geo_coordinate import GeoCoordinate
 from map_engraver.data.osm_shapely_ops.transform import \
     transform_interpolated_euclidean
@@ -89,24 +93,82 @@ def render(
     # Read borders data
     osm_map = Parser.parse(borders_path)
     osm_to_shapely = OsmToShapely(osm_map)
-    historic_water = filter_elements(osm_map, lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water', filter_nodes=False, filter_relations=False)
-    historic_land = filter_elements(osm_map, lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'land', filter_nodes=False, filter_relations=False)
-    borders_sc = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'scotland', filter_nodes=False, filter_ways=False)
-    borders_en = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england', filter_nodes=False, filter_ways=False)
-    borders_es = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'spain', filter_nodes=False, filter_ways=False)
-    borders_fr = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'france', filter_nodes=False, filter_ways=False)
-    borders_pt = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'portugal', filter_nodes=False, filter_ways=False)
-    borders_nl = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'netherlands', filter_nodes=False, filter_ways=False)
-    borders_xx = filter_elements(osm_map, lambda _, relation: relation.tags['country'] == 'england/france', filter_nodes=False, filter_ways=False)
-    polygons_water = list(map(lambda way: osm_to_shapely.way_to_polygon(way), list(historic_water.ways.values())))
-    polygons_land = list(map(lambda way: osm_to_shapely.way_to_polygon(way), list(historic_land.ways.values())))
-    multi_polygon_sc = osm_to_shapely.relation_to_multi_polygon(list(borders_sc.relations.values())[0])
-    multi_polygon_en = osm_to_shapely.relation_to_multi_polygon(list(borders_en.relations.values())[0])
-    multi_polygon_es = osm_to_shapely.relation_to_multi_polygon(list(borders_es.relations.values())[0])
-    multi_polygon_fr = osm_to_shapely.relation_to_multi_polygon(list(borders_fr.relations.values())[0])
-    multi_polygon_pt = osm_to_shapely.relation_to_multi_polygon(list(borders_pt.relations.values())[0])
-    multi_polygon_nl = osm_to_shapely.relation_to_multi_polygon(list(borders_nl.relations.values())[0])
-    multi_polygon_xx = osm_to_shapely.relation_to_multi_polygon(list(borders_xx.relations.values())[0])
+    historic_water = filter_elements(
+        osm_map,
+        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water',
+        filter_nodes=False,
+        filter_relations=False
+    )
+    historic_land = filter_elements(
+        osm_map,
+        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'land',
+        filter_nodes=False,
+        filter_relations=False
+    )
+    borders_sc = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'scotland',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_en = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'england',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_es = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'spain',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_fr = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'france',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_pt = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'portugal',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_nl = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'netherlands',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    borders_xx = filter_elements(
+        osm_map,
+        lambda _, relation: relation.tags['country'] == 'england/france',
+        filter_nodes=False,
+        filter_ways=False
+    )
+    polygons_water = list(map(
+        lambda way: osm_to_shapely.way_to_polygon(way),
+        list(historic_water.ways.values())
+    ))
+    polygons_land = list(map(
+        lambda way: osm_to_shapely.way_to_polygon(way),
+        list(historic_land.ways.values())
+    ))
+    multi_polygon_sc = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_sc.relations.values())[0])
+    multi_polygon_en = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_en.relations.values())[0])
+    multi_polygon_es = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_es.relations.values())[0])
+    multi_polygon_fr = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_fr.relations.values())[0])
+    multi_polygon_pt = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_pt.relations.values())[0])
+    multi_polygon_nl = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_nl.relations.values())[0])
+    multi_polygon_xx = osm_to_shapely.relation_to_multi_polygon(
+        list(borders_xx.relations.values())[0])
 
     # Invert CRS for shapes, because shapefiles are store coordinates are lon/lat,
     # not according to the ISO-approved standard.
@@ -125,7 +187,12 @@ def render(
     lake_shapes = lake_shapes.difference(ops.unary_union(polygons_land))
 
     # Read boat route.
-    boat_way = filter_elements(osm_map, lambda _, way: 'name' in way.tags and way.tags['name'] == 'First Expedition', filter_nodes=False, filter_relations=False)
+    boat_way = filter_elements(
+        osm_map,
+        lambda _, way: 'name' in way.tags and way.tags['name'] == 'First Expedition',
+        filter_nodes=False,
+        filter_relations=False
+    )
     boat_linestring = osm_to_shapely.way_to_line_string(list(boat_way.ways.values())[0])
 
     # Build the canvas
@@ -137,38 +204,36 @@ def render(
     canvas_builder.set_path(path)
     globe_px = 720
     margin_px = 0
-    canvas_builder.set_size(
-        Cu.from_px(margin_px * 2 + globe_px),
-        Cu.from_px(margin_px * 2 + globe_px)
-    )
+    canvas_width = Cu.from_px(margin_px * 2 + globe_px)
+    canvas_height = Cu.from_px(margin_px * 2 + globe_px)
+    canvas_builder.set_size(canvas_width, canvas_height)
     canvas = canvas_builder.build()
 
     # Now let's sort out the projection system
     crs = CRS.from_proj4('+proj=ortho +lat_0=20 +lon_0=-50')
+    wgs84_crs = CRS.from_epsg(4326)
     azimuthal_mask_ortho = masks.azimuthal_mask(crs)
     azimuthal_mask_wgs84 = masks.azimuthal_mask_wgs84(crs)
-    geo_to_canvas_scale = geo_canvas_ops.GeoCanvasScale(
+    builder = GeoCanvasTransformersBuilder()
+    builder.set_crs(crs)
+    builder.set_data_crs(wgs84_crs)
+    builder.set_scale(GeoCanvasScale(
         azimuthal_mask_ortho.bounds[2] - azimuthal_mask_ortho.bounds[0],
         Cu.from_px(globe_px)
-    )
-    origin_for_geo = GeoCoordinate(0, 0, crs)
-    origin_x = Cu.from_px(margin_px + globe_px / 2)
-    origin_y = Cu.from_px(margin_px + globe_px / 2)
-    origin_for_canvas = CanvasCoordinate(origin_x, origin_y)
-    proj_to_canvas = geo_canvas_ops.build_transformer(
-        crs=crs,
-        data_crs=crs,
-        scale=geo_to_canvas_scale,
-        origin_for_geo=origin_for_geo,
-        origin_for_canvas=origin_for_canvas
-    )
-    wgs84_crs = CRS.from_epsg(4326)
-    wgs84_to_canvas = geo_canvas_ops.build_transformer(
-        crs=crs,
-        data_crs=wgs84_crs,
-        scale=geo_to_canvas_scale,
-        origin_for_geo=origin_for_geo,
-        origin_for_canvas=origin_for_canvas
+    ))
+    builder.set_origin_for_geo(GeoCoordinate(0, 0, crs))
+    builder.set_origin_for_canvas(CanvasCoordinate(
+        Cu.from_px(margin_px + globe_px / 2),
+        Cu.from_px(margin_px + globe_px / 2)
+    ))
+    wgs84_to_canvas = builder.build_crs_to_canvas_transformer()
+    mask_canvas = canvas_mask(
+        rect(CanvasBbox(
+            CanvasCoordinate.origin(),
+            canvas_width,
+            canvas_height
+        )),
+        builder
     )
 
     # Cull away unnecessary geometries, and subtract lakes from land.
@@ -206,7 +271,6 @@ def render(
     background.color = bg_color
     background.draw(canvas)
 
-    mask_canvas = ops.transform(proj_to_canvas, azimuthal_mask_ortho)
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = sea_color
     polygon_drawer.geoms = [mask_canvas]
