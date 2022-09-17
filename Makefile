@@ -32,6 +32,14 @@ orthographic-light: ## Generates the orthographic map in light-mode
 orthographic-dark: ## Generates the orthographic map in dark-mode
 	poetry run python new_caledonia_maps/orthographic.py --dark
 
+panama: panama-light panama-dark  ## Generates the orthographic maps
+
+panama-light: ## Generates the orthographic map in light-mode
+	poetry run python new_caledonia_maps/panama.py --light
+
+panama-dark: ## Generates the orthographic map in dark-mode
+	poetry run python new_caledonia_maps/panama.py --dark
+
 lint: ## Checks for linting errors
 	poetry run flake8
 
