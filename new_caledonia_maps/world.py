@@ -44,13 +44,14 @@ from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 def render(
         dark: bool,
 ):
-    name = 'orthographic-light.svg'
+    name = 'world-light.svg'
 
     img_path = Path(__file__).parent.parent.joinpath('img')
 
-    bg_color = (1, 1, 1)
     sea_color = (0/255, 101/255, 204/255)
+    # sea_color = (200/255, 200/255, 200/255)
     land_color = (183/255, 218/255, 158/255)
+    # land_color = (230/255, 230/255, 230/255)
     scotland = (255 / 255, 255 / 255, 255 / 255)
     england = (255 / 255, 170 / 255, 180 / 255)
     france = (126 / 255, 222 / 255, 255 / 255)
@@ -60,8 +61,7 @@ def render(
     boat_path = (255 / 255, 255 / 255, 255 / 255)
     ship_side_path = img_path.joinpath('ship_side_light.svg')
     if dark:
-        name = 'orthographic-dark.svg'
-        bg_color = (0, 0, 0)
+        name = 'world-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
         land_color = (76 / 255, 141 / 255, 146 / 255)
         scotland = (255 / 255, 255 / 255, 255 / 255)
@@ -267,9 +267,9 @@ def render(
     )
 
     # Finally, let's get to rendering stuff!
-    background = Background()
-    background.color = bg_color
-    background.draw(canvas)
+    # background = Background()
+    # background.color = bg_color
+    # background.draw(canvas)
 
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = sea_color
