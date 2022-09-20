@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="16px" viewBox="0 0 24 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>panama</title>
+    <desc>Created with Sketch.</desc>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect fill="#FFFFFF" x="0" y="0" width="24" height="16"></rect>
+        <rect fill="#062357" x="0" y="8" width="12" height="8"></rect>
+        <rect fill="#DA111B" x="12" y="0" width="12" height="8"></rect>
+        <polygon fill="#062357" points="6 4.767892 4.8244295 5.61803399 5.26969131 4.23729168 4.09788697 3.38196601 5.54864441 3.37876232 6 2 6.45135559 3.37876232 7.90211303 3.38196601 6.73030869 4.23729168 7.1755705 5.61803399"></polygon>
+        <polygon fill="#DA111B" points="18 12.767892 16.8244295 13.618034 17.2696913 12.2372917 16.097887 11.381966 17.5486444 11.3787623 18 10 18.4513556 11.3787623 19.902113 11.381966 18.7303087 12.2372917 19.1755705 13.618034"></polygon>
+    </g>
+</svg>
