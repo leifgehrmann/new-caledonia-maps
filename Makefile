@@ -24,13 +24,14 @@ download_ne_data: ## Download data from natural earth
 	curl -o data/ne_50m_lakes.zip https://naturalearth.s3.amazonaws.com/50m_physical/ne_50m_lakes.zip
 	unzip -o -d data/ne_50m_lakes data/ne_50m_lakes.zip
 
-orthographic: orthographic-light orthographic-dark  ## Generates the orthographic maps
 
-orthographic-light: ## Generates the orthographic map in light-mode
-	poetry run python new_caledonia_maps/orthographic.py --light
+world: world-light world-dark  ## Generates the world maps
 
-orthographic-dark: ## Generates the orthographic map in dark-mode
-	poetry run python new_caledonia_maps/orthographic.py --dark
+world-light: ## Generates the world map in light-mode
+	poetry run python new_caledonia_maps/world.py --light
+
+world-dark: ## Generates the world map in dark-mode
+	poetry run python new_caledonia_maps/world.py --dark
 
 panama: panama-light panama-dark  ## Generates the orthographic maps
 
