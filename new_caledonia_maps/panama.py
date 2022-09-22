@@ -17,7 +17,7 @@ from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
 from map_engraver.drawable.layout.background import Background
-from shapely.geometry import shape, Point
+from shapely.geometry import shape, Point, MultiLineString
 from shapely.geometry.base import BaseGeometry
 
 from pyproj import CRS
@@ -52,6 +52,7 @@ def render(
     # sea_color = (200/255, 200/255, 200/255)
     land_color = (183/255, 218/255, 158/255)
     # land_color = (230/255, 230/255, 230/255)
+    panama_border_color = (0, 0, 0)
     if dark:
         name = 'panama-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
@@ -77,6 +78,17 @@ def render(
     # Read borders data
     osm_map = Parser.parse(borders_path)
     osm_to_shapely = OsmToShapely(osm_map)
+    panama_border_ways = filter_elements(
+        osm_map,
+        lambda _, way: (
+                'barrier' in way.tags and
+                way.tags['barrier'] == 'border_control' and
+                'name' in way.tags and
+                way.tags['name'] == 'Panama'
+        ),
+        filter_nodes=False,
+        filter_relations=False
+    )
     historic_water = filter_elements(
         osm_map,
         lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water',
@@ -89,6 +101,10 @@ def render(
         filter_nodes=False,
         filter_relations=False
     )
+    panama_border_line_strings = list(map(
+        lambda way: osm_to_shapely.way_to_line_string(way),
+        list(panama_border_ways.ways.values())
+    ))
     polygons_water = list(map(
         lambda way: osm_to_shapely.way_to_polygon(way),
         list(historic_water.ways.values())
@@ -108,7 +124,7 @@ def render(
 
     land_shapes = transform_geoms_to_invert(land_shapes)
     lake_shapes = transform_geoms_to_invert(lake_shapes)
-    land_shapes = ops.unary_union(land_shapes)
+    land_shapes = ops.unary_union(land_shapes + polygons_land)
     # Add ancient lakes
     lake_shapes = ops.unary_union(lake_shapes + polygons_water)
     # Removed modern lakes and reservoirs
@@ -188,6 +204,20 @@ def render(
     polygon_drawer.fill_color = land_color
     polygon_drawer.geoms = [land_shapes_canvas]
     polygon_drawer.draw(canvas)
+
+    # Draw the borders of Panama
+    panama_border_line_string_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, MultiLineString(panama_border_line_strings)
+    )
+    panama_border_line_string_canvas = panama_border_line_string_canvas.simplify(1)
+    line_drawer = LineDrawer()
+    line_drawer.geoms = [panama_border_line_string_canvas]
+    line_drawer.stroke_color = panama_border_color
+    line_drawer.stroke_width = Cu.from_px(2)
+    line_drawer.stroke_dashes = [Cu.from_px(2), Cu.from_px(3)], Cu.from_px(3)
+    line_drawer.stroke_line_cap = cairocffi.constants.LINE_CAP_ROUND
+    line_drawer.stroke_line_join = cairocffi.constants.LINE_CAP_ROUND
+    line_drawer.draw(canvas)
 
     canvas.close()
 
