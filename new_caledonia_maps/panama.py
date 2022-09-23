@@ -7,17 +7,16 @@ import click
 import shapefile
 from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.data.canvas_geometry.rect import rect
-from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask, canvas_wgs84_mask
-from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import GeoCanvasTransformersBuilder
+from map_engraver.data.geo_canvas_ops.geo_canvas_mask import \
+    canvas_mask, canvas_wgs84_mask
+from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import \
+    GeoCanvasTransformersBuilder
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
-from map_engraver.data.osm_shapely_ops.homogenize import geoms_to_multi_polygon
 from map_engraver.drawable.geometry.line_drawer import LineDrawer
-from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
-from map_engraver.drawable.layout.background import Background
-from shapely.geometry import shape, Point, MultiLineString
+from shapely.geometry import shape, MultiLineString, Point
 from shapely.geometry.base import BaseGeometry
 
 from pyproj import CRS
@@ -26,11 +25,9 @@ from shapely import ops
 from map_engraver.canvas import CanvasBuilder
 from map_engraver.canvas.canvas_coordinate import CanvasCoordinate
 from map_engraver.canvas.canvas_unit import CanvasUnit as Cu
-from map_engraver.data import geo_canvas_ops
 from map_engraver.data.geo.geo_coordinate import GeoCoordinate
 from map_engraver.data.osm_shapely_ops.transform import \
     transform_interpolated_euclidean
-from map_engraver.data.proj import masks
 
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 
@@ -49,14 +46,16 @@ def render(
     img_path = Path(__file__).parent.parent.joinpath('img')
 
     sea_color = (0/255, 101/255, 204/255)
-    # sea_color = (200/255, 200/255, 200/255)
     land_color = (183/255, 218/255, 158/255)
-    # land_color = (230/255, 230/255, 230/255)
+    boat_path_color = (255 / 255, 255 / 255, 255 / 255)
+    ship_side_path = img_path.joinpath('ship_side_light.svg')
     panama_border_color = (0, 0, 0)
     if dark:
         name = 'panama-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
         land_color = (76 / 255, 141 / 255, 146 / 255)
+        boat_path_color = (184 / 255, 204 / 255, 255 / 255)
+        ship_side_path = img_path.joinpath('ship_side_dark.svg')
 
     # Extract shapefile data into multi-polygons
     data_path = Path(__file__).parent.parent.joinpath('data')
@@ -91,17 +90,21 @@ def render(
     )
     historic_water = filter_elements(
         osm_map,
-        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water',
+        lambda _, way: (
+                'natural' in way.tags and way.tags['natural'] == 'water'
+        ),
         filter_nodes=False,
         filter_relations=False
     )
     historic_land = filter_elements(
         osm_map,
-        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'land',
+        lambda _, way: (
+                'natural' in way.tags and way.tags['natural'] == 'land'
+        ),
         filter_nodes=False,
         filter_relations=False
     )
-    panama_border_line_strings = list(map(
+    panama_border_wgs84 = list(map(
         lambda way: osm_to_shapely.way_to_line_string(way),
         list(panama_border_ways.ways.values())
     ))
@@ -114,8 +117,8 @@ def render(
         list(historic_land.ways.values())
     ))
 
-    # Invert CRS for shapes, because shapefiles are store coordinates are lon/lat,
-    # not according to the ISO-approved standard.
+    # Invert CRS for shapes, because shapefiles are store coordinates are
+    # lon/lat, not according to the ISO-approved standard.
     def transform_geoms_to_invert(geoms: List[BaseGeometry]):
         return list(map(
             lambda geom: ops.transform(lambda x, y: (y, x), geom),
@@ -131,8 +134,16 @@ def render(
     lake_shapes = lake_shapes.difference(ops.unary_union(polygons_land))
 
     # Read boat route.
-    boat_way = filter_elements(osm_map, lambda _, way: 'name' in way.tags and way.tags['name'] == 'First Expedition', filter_nodes=False, filter_relations=False)
-    boat_linestring = osm_to_shapely.way_to_line_string(list(boat_way.ways.values())[0])
+    boat_way = filter_elements(
+        osm_map, lambda _, way: (
+            'name' in way.tags and way.tags['name'] == 'First Expedition'
+        ),
+        filter_nodes=False,
+        filter_relations=False
+    )
+    boat_path_wgs84 = osm_to_shapely.way_to_line_string(
+        list(boat_way.ways.values())[0]
+    )
 
     # Build the canvas
     Path(__file__).parent.parent.joinpath('output/') \
@@ -143,7 +154,6 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(500)
-    margin_px = 0
     canvas_builder.set_size(
         canvas_width,
         canvas_height
@@ -205,13 +215,52 @@ def render(
     polygon_drawer.geoms = [land_shapes_canvas]
     polygon_drawer.draw(canvas)
 
-    # Draw the borders of Panama
-    panama_border_line_string_canvas = transform_interpolated_euclidean(
-        wgs84_to_canvas, MultiLineString(panama_border_line_strings)
+    boat_path_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, boat_path_wgs84
     )
-    panama_border_line_string_canvas = panama_border_line_string_canvas.simplify(1)
+    boat_path_canvas = boat_path_canvas.intersection(mask_canvas)
     line_drawer = LineDrawer()
-    line_drawer.geoms = [panama_border_line_string_canvas]
+    line_drawer.geoms = [boat_path_canvas]
+    line_drawer.stroke_color = boat_path_color
+    line_drawer.stroke_width = Cu.from_px(2)
+    line_drawer.stroke_dashes = [Cu.from_px(2), Cu.from_px(3)], Cu.from_px(3)
+    line_drawer.stroke_line_cap = cairocffi.constants.LINE_CAP_ROUND
+    line_drawer.stroke_line_join = cairocffi.constants.LINE_CAP_ROUND
+    line_drawer.draw(canvas)
+
+    svg_drawer = Svg(ship_side_path)
+    svg_actual_width = Cu.from_px(50)
+    svg_actual_height = Cu.from_px(35)
+    svg_drawer.width = Cu.from_px(50)
+    svg_drawer.height = Cu.from_px(35)
+    boat_line_string_length = boat_path_canvas.length
+    boat_position: Point = boat_path_canvas.interpolate(
+        boat_line_string_length - svg_drawer.width.pt / 5
+    )
+    boat_position_left: Point = boat_path_canvas.interpolate(
+        boat_line_string_length
+    )
+    svg_drawer.position = CanvasCoordinate.from_pt(
+        boat_position.x,
+        boat_position.y
+    )
+    svg_drawer.svg_origin = CanvasCoordinate(
+        svg_actual_width / 2,
+        svg_actual_height - line_drawer.stroke_width * 0.5,
+    )
+    svg_drawer.rotation = math.atan2(
+        boat_position.y - boat_position_left.y,
+        boat_position.x - boat_position_left.x
+    )
+    svg_drawer.draw(canvas)
+
+    # Draw the borders of Panama
+    panama_border_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, MultiLineString(panama_border_wgs84)
+    )
+    panama_border_canvas = panama_border_canvas.simplify(1)
+    line_drawer = LineDrawer()
+    line_drawer.geoms = [panama_border_canvas]
     line_drawer.stroke_color = panama_border_color
     line_drawer.stroke_width = Cu.from_px(2)
     line_drawer.stroke_dashes = [Cu.from_px(2), Cu.from_px(3)], Cu.from_px(3)

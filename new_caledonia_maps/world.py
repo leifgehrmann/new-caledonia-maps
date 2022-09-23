@@ -9,7 +9,8 @@ from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.data.canvas_geometry.rect import rect
 from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask
 from map_engraver.data.geo_canvas_ops.geo_canvas_scale import GeoCanvasScale
-from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import GeoCanvasTransformersBuilder
+from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import \
+    GeoCanvasTransformersBuilder
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
@@ -95,13 +96,17 @@ def render(
     osm_to_shapely = OsmToShapely(osm_map)
     historic_water = filter_elements(
         osm_map,
-        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'water',
+        lambda _, way: (
+                'natural' in way.tags and way.tags['natural'] == 'water'
+        ),
         filter_nodes=False,
         filter_relations=False
     )
     historic_land = filter_elements(
         osm_map,
-        lambda _, way: 'natural' in way.tags and way.tags['natural'] == 'land',
+        lambda _, way: (
+            'natural' in way.tags and way.tags['natural'] == 'land'
+        ),
         filter_nodes=False,
         filter_relations=False
     )
@@ -170,8 +175,8 @@ def render(
     multi_polygon_xx = osm_to_shapely.relation_to_multi_polygon(
         list(borders_xx.relations.values())[0])
 
-    # Invert CRS for shapes, because shapefiles are store coordinates are lon/lat,
-    # not according to the ISO-approved standard.
+    # Invert CRS for shapes, because shapefiles are store coordinates are
+    # lon/lat, not according to the ISO-approved standard.
     def transform_geoms_to_invert(geoms: List[BaseGeometry]):
         return list(map(
             lambda geom: ops.transform(lambda x, y: (y, x), geom),
@@ -189,11 +194,15 @@ def render(
     # Read boat route.
     boat_way = filter_elements(
         osm_map,
-        lambda _, way: 'name' in way.tags and way.tags['name'] == 'First Expedition',
+        lambda _, way: (
+            'name' in way.tags and way.tags['name'] == 'First Expedition'
+        ),
         filter_nodes=False,
         filter_relations=False
     )
-    boat_linestring = osm_to_shapely.way_to_line_string(list(boat_way.ways.values())[0])
+    boat_linestring = osm_to_shapely.way_to_line_string(
+        list(boat_way.ways.values())[0]
+    )
 
     # Build the canvas
     Path(__file__).parent.parent.joinpath('output/') \
@@ -267,10 +276,6 @@ def render(
     )
 
     # Finally, let's get to rendering stuff!
-    # background = Background()
-    # background.color = bg_color
-    # background.draw(canvas)
-
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = sea_color
     polygon_drawer.geoms = [mask_canvas]
@@ -280,13 +285,27 @@ def render(
         wgs84_to_canvas,
         land_shapes
     )
-    multi_polygon_sc_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_sc)
-    multi_polygon_en_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_en)
-    multi_polygon_es_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_es)
-    multi_polygon_fr_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_fr)
-    multi_polygon_pt_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_pt)
-    multi_polygon_nl_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_nl)
-    multi_polygon_xx_canvas = transform_interpolated_euclidean(wgs84_to_canvas, multi_polygon_xx)
+    multi_polygon_sc_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_sc
+    )
+    multi_polygon_en_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_en
+    )
+    multi_polygon_es_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_es
+    )
+    multi_polygon_fr_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_fr
+    )
+    multi_polygon_pt_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_pt
+    )
+    multi_polygon_nl_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_nl
+    )
+    multi_polygon_xx_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, multi_polygon_xx
+    )
 
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = land_color
@@ -320,7 +339,9 @@ def render(
     stripe_polygon_drawer.stripe_colors = [england, france]
     stripe_polygon_drawer.draw(canvas)
 
-    boat_line_string_canvas = transform_interpolated_euclidean(wgs84_to_canvas, boat_linestring)
+    boat_line_string_canvas = transform_interpolated_euclidean(
+        wgs84_to_canvas, boat_linestring
+    )
     line_drawer = LineDrawer()
     line_drawer.geoms = [boat_line_string_canvas]
     line_drawer.stroke_color = boat_path
