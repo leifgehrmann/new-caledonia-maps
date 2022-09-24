@@ -19,6 +19,7 @@ from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import \
     StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
+from pangocffi import Alignment
 from shapely.geometry import shape, Point
 from shapely.geometry.base import BaseGeometry
 
@@ -34,6 +35,8 @@ from map_engraver.data.osm_shapely_ops.transform import \
 from map_engraver.data.proj import masks
 
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
+
+from new_caledonia_maps.flag_annotation import draw_annotation_with_flag
 
 
 @click.command()
@@ -377,6 +380,59 @@ def render(
         boat_position_right.x - boat_position_left.x
     )
     svg_drawer.draw(canvas)
+
+    # Display labels on the map showing each empire.
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(14.605, -96.570, wgs84_crs).tuple
+        )),
+        'down',
+        Cu.from_px(75),
+        'Spanish\nEmpire',
+        Alignment.LEFT,
+        img_path.joinpath('spain.svg'),
+        show_annotation_point=False
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(-4.04, -36.61, wgs84_crs).tuple
+        )),
+        'up',
+        Cu.from_px(35),
+        'Portuguese\nEmpire',
+        Alignment.LEFT,
+        img_path.joinpath('portugal.svg'),
+        show_annotation_point=False
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(37.753, -73.355, wgs84_crs).tuple
+        )),
+        'down',
+        Cu.from_px(40),
+        'English\nEmpire',
+        Alignment.LEFT,
+        img_path.joinpath('england.svg'),
+        show_annotation_point=False
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(43.669, -62.501, wgs84_crs).tuple
+        )),
+        'down',
+        Cu.from_px(40),
+        'French\nEmpire',
+        Alignment.LEFT,
+        img_path.joinpath('france.svg'),
+        show_annotation_point=False
+    )
 
     canvas.close()
 

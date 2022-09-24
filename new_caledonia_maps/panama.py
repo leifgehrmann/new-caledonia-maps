@@ -16,6 +16,7 @@ from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.images.svg import Svg
+from pangocffi import Alignment
 from shapely.geometry import shape, MultiLineString, Point
 from shapely.geometry.base import BaseGeometry
 
@@ -30,6 +31,8 @@ from map_engraver.data.osm_shapely_ops.transform import \
     transform_interpolated_euclidean
 
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
+
+from new_caledonia_maps.flag_annotation import draw_annotation_with_flag
 
 
 @click.command()
@@ -267,6 +270,79 @@ def render(
     line_drawer.stroke_line_cap = cairocffi.constants.LINE_CAP_ROUND
     line_drawer.stroke_line_join = cairocffi.constants.LINE_CAP_ROUND
     line_drawer.draw(canvas)
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.834019, -77.631797, wgs84_crs).tuple
+        )),
+        'up',
+        Cu.from_px(100),
+        'New Caledonia\n<span size="80%">Est. 1698</span>',
+        Alignment.RIGHT,
+        img_path.joinpath('scotland.svg')
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(9.582889, -79.470306, wgs84_crs).tuple
+        )),
+        'up',
+        Cu.from_px(110),
+        'Nombre de Dios\n<span size="80%">Est. 1510</span>',
+        Alignment.LEFT,
+        img_path.joinpath('spain.svg')
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.983333, -79.516667, wgs84_crs).tuple
+        )),
+        'down',
+        Cu.from_px(100),
+        'Panama City\n<span size="80%">Est. 1519</span>',
+        Alignment.LEFT,
+        img_path.joinpath('spain.svg')
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(9.554444, -79.655, wgs84_crs).tuple
+        )),
+        'up',
+        Cu.from_px(80),
+        'Portobelo\n<span size="80%">Est. 1597</span>',
+        Alignment.RIGHT,
+        img_path.joinpath('spain.svg')
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.433333, -82.433333, wgs84_crs).tuple
+        )),
+        'down',
+        Cu.from_px(100),
+        'David\n<span size="80%">Est. 1602</span>',
+        Alignment.LEFT,
+        img_path.joinpath('spain.svg')
+    )
+
+    draw_annotation_with_flag(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(9.5683, -82.5643, wgs84_crs).tuple
+        )),
+        'up',
+        Cu.from_px(50),
+        'Panama today',
+        Alignment.LEFT,
+        img_path.joinpath('panama.svg'),
+        show_annotation_point=False
+    )
 
     canvas.close()
 
