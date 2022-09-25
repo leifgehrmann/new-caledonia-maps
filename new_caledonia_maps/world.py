@@ -413,7 +413,7 @@ def render(
         CanvasCoordinate.from_pt(*wgs84_to_canvas(
             *GeoCoordinate(37.753, -73.355, wgs84_crs).tuple
         )),
-        'down',
+        'right',
         Cu.from_px(40),
         'English\nEmpire',
         Alignment.LEFT,
@@ -424,10 +424,10 @@ def render(
     draw_annotation_with_flag(
         canvas,
         CanvasCoordinate.from_pt(*wgs84_to_canvas(
-            *GeoCoordinate(43.669, -62.501, wgs84_crs).tuple
+            *GeoCoordinate(55.603, -57.283, wgs84_crs).tuple
         )),
-        'down',
-        Cu.from_px(40),
+        'right',
+        Cu.from_px(25),
         'French\nEmpire',
         Alignment.LEFT,
         img_path.joinpath('france.svg'),

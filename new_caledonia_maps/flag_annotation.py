@@ -62,6 +62,10 @@ def draw_annotation_with_flag(
         canvas.context.set_source_rgba(0, 0, 0)
         canvas.context.fill()
 
+    # Prepare the flag SVG
+    svg_drawer = Svg(flag_svg_path)
+    svg_size = svg_drawer.read_svg_size()
+
     # Draw text
     label = '<span ' \
             'face="SF Pro Rounded" ' \
@@ -79,15 +83,23 @@ def draw_annotation_with_flag(
     vertical_margins = CanvasUnit.from_px(2)
     text_x = annotation_point.x.pt + horizontal_margins.pt
     text_y = 0
+
     if (direction == 'up' or direction == 'down') and \
             label_alignment is Alignment.RIGHT:
         text_x = annotation_point.x.pt - text_width.pt - horizontal_margins.pt
+    elif direction == 'right':
+        text_x = annotation_point.x.pt + distance.pt + \
+                 CanvasUnit.from_px(3).pt + CanvasUnit.from_px(6).pt + \
+                 svg_size[0].pt + horizontal_margins.pt
 
     if direction == 'up':
         text_y = annotation_point.y.pt - distance.pt - text_height.pt - \
                  vertical_margins.pt
     elif direction == 'down':
         text_y = annotation_point.y.pt + distance.pt + vertical_margins.pt
+    elif direction == 'right':
+        text_y = annotation_point.y.pt - \
+                 (text_height / text.get_line_count() / 2).pt
 
     canvas.context.translate(text_x, text_y)
     pangocairocffi.layout_path(canvas.context, text)
@@ -96,8 +108,6 @@ def draw_annotation_with_flag(
     canvas.context.restore()
 
     # Draw the flag
-    svg_drawer = Svg(flag_svg_path)
-    svg_size = svg_drawer.read_svg_size()
     svg_drawer.position = CanvasCoordinate.from_pt(
         text_x - svg_size[0].pt - CanvasUnit.from_px(3).pt,
         text_y + CanvasUnit.from_px(3).pt
