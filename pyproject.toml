@@ -12,6 +12,7 @@ Shapely = "^1.8.1"
 click = "^8.1.2"
 pyshp = "^2.2.0"
 map-engraver = {git = "https://github.com/leifgehrmann/map-engraver.git"}
+pangocairocffi = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

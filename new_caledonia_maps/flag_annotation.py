@@ -75,8 +75,8 @@ def draw_annotation_with_flag(
             '>' + label + '</span>'
     canvas.context.save()
     text = pangocairocffi.create_layout(canvas.context)
-    text.set_alignment(label_alignment)
-    text.set_markup(label)
+    text.alignment = label_alignment
+    text.apply_markup(label)
     text_width = CanvasUnit.from_pango(text.get_size()[0])
     text_height = CanvasUnit.from_pango(text.get_size()[1])
     horizontal_margins = CanvasUnit.from_px(-2)
