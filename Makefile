@@ -24,6 +24,8 @@ download_ne_data: ## Download data from natural earth
 	curl -o data/ne_50m_lakes.zip https://naturalearth.s3.amazonaws.com/50m_physical/ne_50m_lakes.zip
 	unzip -o -d data/ne_50m_lakes data/ne_50m_lakes.zip
 
+build: ## Builds the docker files to execute the programs
+	docker build -t new-caledonia-maps-potrace -f Dockerfile.potrace .
 
 world: world-light world-dark  ## Generates the world maps
 
