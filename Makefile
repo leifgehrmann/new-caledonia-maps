@@ -23,6 +23,12 @@ download_ne_data: ## Download data from natural earth
 	unzip -o -d data/ne_50m_land data/ne_50m_land.zip
 	curl -o data/ne_50m_lakes.zip https://naturalearth.s3.amazonaws.com/50m_physical/ne_50m_lakes.zip
 	unzip -o -d data/ne_50m_lakes data/ne_50m_lakes.zip
+	curl -o data/ne_10m_land.zip https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_land.zip
+	unzip -o -d data/ne_10m_land data/ne_10m_land.zip
+	curl -o data/ne_10m_lakes.zip https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_lakes.zip
+	unzip -o -d data/ne_10m_lakes data/ne_10m_lakes.zip
+	curl -o data/ne_shaded_relief.zip https://naciscdn.org/naturalearth/10m/raster/SR_HR.zip
+	unzip -o -d data/ne_10m_shaded_relief data/ne_shaded_relief.zip
 
 build: ## Builds the docker files to execute the programs
 	docker build -t new-caledonia-maps-potrace -f Dockerfile.potrace .
