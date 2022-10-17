@@ -1,5 +1,5 @@
-FROM alpine:latest
+FROM debian:latest
 
-RUN apk add potrace
+RUN apt update && apt install -y potrace netpbm
 
 ENTRYPOINT []
