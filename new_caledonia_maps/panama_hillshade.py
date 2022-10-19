@@ -1,3 +1,4 @@
+import glob
 import subprocess
 from pathlib import Path
 
@@ -25,15 +26,17 @@ def docker_run(command: str) -> int:
     )
 
 
-data_path = Path(__file__).parent.parent
+root_path = Path(__file__).parent.parent
 full_tif_filename = 'data/ne_10m_shaded_relief/SR_HR.tif'
 panama_tif_filename = 'data/panama_shaded_relief.tif'
 panama_pnm_filename = 'data/panama_shaded_relief.pnm'
+panama_svg_light_filename_match = 'data/panama_shaded_relief_light_*.svg'
 panama_svg_light_filename = 'data/panama_shaded_relief_light_%.2f.svg'
+panama_svg_dark_filename_match = 'data/panama_shaded_relief_dark_*.svg'
 panama_svg_dark_filename = 'data/panama_shaded_relief_dark_%.2f.svg'
-full_file_path = data_path.joinpath(full_tif_filename)
-panama_tif_path = data_path.joinpath(panama_tif_filename)
-panama_pnm_path = data_path.joinpath(panama_pnm_filename)
+full_file_path = root_path.joinpath(full_tif_filename)
+panama_tif_path = root_path.joinpath(panama_tif_filename)
+panama_pnm_path = root_path.joinpath(panama_pnm_filename)
 
 if not panama_tif_path.exists():
     canvas_width = Cu.from_px(720)
@@ -68,7 +71,7 @@ if not panama_pnm_path.exists():
         'tifftopnm %s > %s' % (panama_tif_filename, panama_pnm_filename)
     )
 
-threshold_midpoint = 206/255
+threshold_midpoint = 206 / 255
 
 for threshold_delta in [0.05, 0.10, 0.15]:
     threshold = threshold_midpoint + threshold_delta
@@ -88,4 +91,14 @@ for threshold_delta in [0.05, 0.10, 0.15, 0.25, 0.40]:
             panama_svg_dark_filename % threshold,
             threshold
         )
+    )
+
+for path in glob.glob(panama_svg_light_filename_match, root_dir=root_path):
+    docker_run(
+        'sed -i -e \'s/fill="#000000"/fill="#FFF" opacity="0.1"/\' %s' % path
+    )
+
+for path in glob.glob(panama_svg_dark_filename_match, root_dir=root_path):
+    docker_run(
+        'sed -i -e \'s/fill="#000000"/fill="#000" opacity="0.1"/\' %s' % path
     )
