@@ -1,3 +1,5 @@
+import glob
+
 import math
 from pathlib import Path
 from typing import List
@@ -61,10 +63,12 @@ def render(
         ship_side_path = img_path.joinpath('ship_side_dark.svg')
 
     # Extract shapefile data into multi-polygons
-    data_path = Path(__file__).parent.parent.joinpath('data')
+    root_path = Path(__file__).parent.parent
+    data_path = root_path.joinpath('data')
     land_shape_path = data_path.joinpath('ne_10m_land/ne_10m_land.shp')
     lake_shape_path = data_path.joinpath('ne_10m_lakes/ne_10m_lakes.shp')
     borders_path = data_path.joinpath('borders.osm')
+    shade_glob = 'data/panama_shaded_relief_*.svg'
 
     # Read land/lake map shapefile data
     def parse_shapefile(shapefile_path: Path):
@@ -217,6 +221,12 @@ def render(
     polygon_drawer.fill_color = land_color
     polygon_drawer.geoms = [land_shapes_canvas]
     polygon_drawer.draw(canvas)
+
+    for shade_path in glob.glob(shade_glob, root_dir=root_path):
+        svg_drawer = Svg(Path(shade_path))
+        svg_drawer.width = canvas_width
+        svg_drawer.position = CanvasCoordinate.origin()
+        svg_drawer.draw(canvas)
 
     boat_path_canvas = transform_interpolated_euclidean(
         wgs84_to_canvas, boat_path_wgs84

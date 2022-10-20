@@ -97,8 +97,14 @@ for path in glob.glob(panama_svg_light_filename_match, root_dir=root_path):
     docker_run(
         'sed -i -e \'s/fill="#000000"/fill="#FFF" opacity="0.1"/\' %s' % path
     )
+    docker_run(
+        'sed -i -e \'s/pt"/px"/g\' %s' % path
+    )
 
 for path in glob.glob(panama_svg_dark_filename_match, root_dir=root_path):
     docker_run(
         'sed -i -e \'s/fill="#000000"/fill="#000" opacity="0.1"/\' %s' % path
+    )
+    docker_run(
+        'sed -i -e \'s/pt"/px"/g\' %s' % path
     )
