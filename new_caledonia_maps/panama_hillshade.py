@@ -30,10 +30,9 @@ root_path = Path(__file__).parent.parent
 full_tif_filename = 'data/ne_10m_shaded_relief/SR_HR.tif'
 panama_tif_filename = 'data/panama_shaded_relief.tif'
 panama_pnm_filename = 'data/panama_shaded_relief.pnm'
-panama_svg_light_filename_match = 'data/panama_shaded_relief_light_*.svg'
-panama_svg_light_filename = 'data/panama_shaded_relief_light_%.2f.svg'
-panama_svg_dark_filename_match = 'data/panama_shaded_relief_dark_*.svg'
-panama_svg_dark_filename = 'data/panama_shaded_relief_dark_%.2f.svg'
+panama_svg_filename_match = 'data/panama_shaded_relief_*.svg'
+panama_svg_white_filename = 'data/panama_shaded_relief_%s_white_%.2f.svg'
+panama_svg_black_filename = 'data/panama_shaded_relief_%s_black_%.2f.svg'
 full_file_path = root_path.joinpath(full_tif_filename)
 panama_tif_path = root_path.joinpath(panama_tif_filename)
 panama_pnm_path = root_path.joinpath(panama_pnm_filename)
@@ -78,8 +77,14 @@ for threshold_delta in [0.05, 0.10, 0.15]:
     docker_run(
         'potrace %s -o %s -b svg -k %f -i' % (
             panama_pnm_filename,
-            panama_svg_light_filename % threshold,
+            panama_svg_white_filename % ('dark', threshold),
             threshold
+        )
+    )
+    docker_run(
+        'cp %s %s' % (
+                panama_svg_white_filename % ('dark', threshold),
+                panama_svg_white_filename % ('light', threshold)
         )
     )
 
@@ -88,22 +93,37 @@ for threshold_delta in [0.05, 0.10, 0.15, 0.25, 0.40]:
     docker_run(
         'potrace %s -o %s -b svg -k %f' % (
             panama_pnm_filename,
-            panama_svg_dark_filename % threshold,
+            panama_svg_black_filename % ('dark', threshold),
             threshold
         )
     )
-
-for path in glob.glob(panama_svg_light_filename_match, root_dir=root_path):
     docker_run(
-        'sed -i -e \'s/fill="#000000"/fill="#FFF" opacity="0.1"/\' %s' % path
-    )
-    docker_run(
-        'sed -i -e \'s/pt"/px"/g\' %s' % path
+        'cp %s %s' % (
+            panama_svg_black_filename % ('dark', threshold),
+            panama_svg_black_filename % ('light', threshold)
+        )
     )
 
-for path in glob.glob(panama_svg_dark_filename_match, root_dir=root_path):
+for path in glob.glob(panama_svg_filename_match, root_dir=root_path):
+    color = None
+    opacity = None
+    if 'dark' in path:
+        if 'black' in path:
+            color = '#000'
+            opacity = 0.1
+        else:
+            color = '#FFF'
+            opacity = 0.1
+    else:
+        if 'black' in path:
+            color = '#000'
+            opacity = 0.1
+        else:
+            color = '#FFF'
+            opacity = 0.2
+
     docker_run(
-        'sed -i -e \'s/fill="#000000"/fill="#000" opacity="0.1"/\' %s' % path
+        'sed -i -e \'s/fill="#000000"/fill="%s" opacity="%f"/\' %s' % (color, opacity, path)
     )
     docker_run(
         'sed -i -e \'s/pt"/px"/g\' %s' % path
