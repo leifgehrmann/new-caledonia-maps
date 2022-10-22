@@ -1,3 +1,5 @@
+import glob
+
 import math
 from pathlib import Path
 from typing import List
@@ -53,15 +55,19 @@ def render(
     boat_path_color = (255 / 255, 255 / 255, 255 / 255)
     ship_side_path = img_path.joinpath('ship_side_light.svg')
     panama_border_color = (0, 0, 0)
+    shade_glob = 'data/panama_shaded_relief/light_*.svg'
     if dark:
         name = 'panama-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
         land_color = (76 / 255, 141 / 255, 146 / 255)
         boat_path_color = (184 / 255, 204 / 255, 255 / 255)
         ship_side_path = img_path.joinpath('ship_side_dark.svg')
+        panama_border_color = (1, 1, 1)
+        shade_glob = 'data/panama_shaded_relief/dark_*.svg'
 
     # Extract shapefile data into multi-polygons
-    data_path = Path(__file__).parent.parent.joinpath('data')
+    root_path = Path(__file__).parent.parent
+    data_path = root_path.joinpath('data')
     land_shape_path = data_path.joinpath('ne_10m_land/ne_10m_land.shp')
     lake_shape_path = data_path.joinpath('ne_10m_lakes/ne_10m_lakes.shp')
     borders_path = data_path.joinpath('borders.osm')
@@ -157,6 +163,11 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(500)
+    canvas_bbox = CanvasBbox(
+        CanvasCoordinate.origin(),
+        canvas_width,
+        canvas_height
+    )
     canvas_builder.set_size(
         canvas_width,
         canvas_height
@@ -181,19 +192,11 @@ def render(
 
     # Generate the masks to cull the data with.
     mask_canvas = canvas_mask(
-        rect(CanvasBbox(
-            CanvasCoordinate.origin(),
-            canvas_width,
-            canvas_height
-        )).buffer(Cu.from_px(10).pt),
+        rect(canvas_bbox).buffer(Cu.from_px(10).pt),
         builder
     )
     mask_wgs84 = canvas_wgs84_mask(
-        rect(CanvasBbox(
-            CanvasCoordinate.origin(),
-            canvas_width,
-            canvas_height
-        )).buffer(Cu.from_px(10).pt),
+        rect(canvas_bbox).buffer(Cu.from_px(10).pt),
         builder
     )
 
@@ -217,6 +220,12 @@ def render(
     polygon_drawer.fill_color = land_color
     polygon_drawer.geoms = [land_shapes_canvas]
     polygon_drawer.draw(canvas)
+
+    for shade_path in glob.glob(shade_glob, root_dir=root_path):
+        svg_drawer = Svg(Path(shade_path))
+        svg_drawer.width = canvas_width
+        svg_drawer.position = CanvasCoordinate.origin()
+        svg_drawer.draw(canvas)
 
     boat_path_canvas = transform_interpolated_euclidean(
         wgs84_to_canvas, boat_path_wgs84

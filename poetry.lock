@@ -109,6 +109,17 @@ pycodestyle = ">=2.8.0,<2.9.0"
 pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
+name = "GDAL"
+version = "3.4.3"
+description = "GDAL: Geospatial Data Abstraction Library"
+category = "main"
+optional = false
+python-versions = ">=3.6.0"
+
+[package.extras]
+numpy = ["numpy (>1.0.0)"]
+
+[[package]]
 name = "map-engraver"
 version = "0.1.0"
 description = "Tool for creating vector maps in the style of engraved maps"
@@ -120,6 +131,7 @@ develop = false
 [package.dependencies]
 cairocffi = "^1.2.0"
 CairoSVG = "^2.5.2"
+GDAL = "3.4.3"
 pangocairocffi = "^0.7.0"
 pangocffi = "^0.11.0"
 Pillow = "^9.1.1"
@@ -131,7 +143,7 @@ tqdm = "^4.64.0"
 type = "git"
 url = "https://github.com/leifgehrmann/map-engraver.git"
 reference = "HEAD"
-resolved_reference = "e907c96968fbd5d479b2c99adb1fea4d25228866"
+resolved_reference = "5fb8b96952b2cb7e4db42041f88f52b7dfe46b4d"
 
 [[package]]
 name = "mccabe"
@@ -375,6 +387,9 @@ defusedxml = [
 flake8 = [
     {file = "flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
     {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
+]
+GDAL = [
+    {file = "GDAL-3.4.3.tar.gz", hash = "sha256:f4f4b0bb34073b164c5a05a1b0eb44af47349e5606eb7b75244c2167ac462f36"},
 ]
 map-engraver = []
 mccabe = [
