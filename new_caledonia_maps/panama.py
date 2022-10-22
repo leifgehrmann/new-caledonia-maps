@@ -163,6 +163,11 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(500)
+    canvas_bbox = CanvasBbox(
+        CanvasCoordinate.origin(),
+        canvas_width,
+        canvas_height
+    )
     canvas_builder.set_size(
         canvas_width,
         canvas_height
@@ -187,19 +192,11 @@ def render(
 
     # Generate the masks to cull the data with.
     mask_canvas = canvas_mask(
-        rect(CanvasBbox(
-            CanvasCoordinate.origin(),
-            canvas_width,
-            canvas_height
-        )).buffer(Cu.from_px(10).pt),
+        rect(canvas_bbox).buffer(Cu.from_px(10).pt),
         builder
     )
     mask_wgs84 = canvas_wgs84_mask(
-        rect(CanvasBbox(
-            CanvasCoordinate.origin(),
-            canvas_width,
-            canvas_height
-        )).buffer(Cu.from_px(10).pt),
+        rect(canvas_bbox).buffer(Cu.from_px(10).pt),
         builder
     )
 
