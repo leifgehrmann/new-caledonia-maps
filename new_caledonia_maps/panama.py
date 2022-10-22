@@ -55,7 +55,7 @@ def render(
     boat_path_color = (255 / 255, 255 / 255, 255 / 255)
     ship_side_path = img_path.joinpath('ship_side_light.svg')
     panama_border_color = (0, 0, 0)
-    shade_glob = 'data/panama_shaded_relief_light_*.svg'
+    shade_glob = 'data/panama_shaded_relief/light_*.svg'
     if dark:
         name = 'panama-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
@@ -63,7 +63,7 @@ def render(
         boat_path_color = (184 / 255, 204 / 255, 255 / 255)
         ship_side_path = img_path.joinpath('ship_side_dark.svg')
         panama_border_color = (1, 1, 1)
-        shade_glob = 'data/panama_shaded_relief_dark_*.svg'
+        shade_glob = 'data/panama_shaded_relief/dark_*.svg'
 
     # Extract shapefile data into multi-polygons
     root_path = Path(__file__).parent.parent

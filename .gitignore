@@ -2,9 +2,12 @@
 .DS_Store
 __pycache__
 
-data# Exclude anything from Natural Earth
+# Exclude anything from Natural Earth
 data/ne_*.zip
 data/ne_*/*
+
+# Exclue generated files
+data/panama_shaded_relief/*
 
 cache
 output
