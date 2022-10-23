@@ -30,8 +30,19 @@ download_ne_data: ## Download data from natural earth
 	curl -o data/ne_shaded_relief.zip https://naciscdn.org/naturalearth/10m/raster/SR_HR.zip
 	unzip -o -d data/ne_10m_shaded_relief data/ne_shaded_relief.zip
 
+download_osm_data: ## Download data from OpenStreetMap
+	curl -o data/new_caledonia.osm https://api.openstreetmap.org/api/0.6/map?bbox=-77.7596,8.7582,-77.5527,8.9939
+
 build: ## Builds the docker files to execute the programs
 	docker build -t new-caledonia-maps-potrace -f Dockerfile.potrace .
+
+preview: preview-light preview-dark  ## Generates the preview image
+
+preview-light: ## Generates the preview image in light-mode
+	poetry run python new_caledonia_maps/preview.py --light
+
+preview-dark: ## Generates the preview image in dark-mode
+	poetry run python new_caledonia_maps/preview.py --dark
 
 world: world-light world-dark  ## Generates the world maps
 

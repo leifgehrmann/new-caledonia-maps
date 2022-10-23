@@ -6,6 +6,9 @@ __pycache__
 data/ne_*.zip
 data/ne_*/*
 
+# Exclude data from OpenStreetMap
+data/new_caledonia.osm
+
 # Exclue generated files
 data/panama_shaded_relief/*
 
