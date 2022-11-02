@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-144416' action='modify' visible='true' lat='8.84504624929' lon='-77.60982788086' />
+  <node id='-149476' action='modify' visible='true' lat='8.85657818944' lon='-77.55901405334' />
+  <node id='-149614' action='modify' visible='true' lat='8.84996265056' lon='-77.57841127396' />
+  <node id='-149655' action='modify' visible='true' lat='8.84648538689' lon='-77.59506234169' />
+  <node id='-149681' action='modify' visible='true' lat='8.84551007473' lon='-77.60265835762' />
+  <node id='-149702' action='modify' visible='true' lat='8.84809676655' lon='-77.58639344215' />
+  <node id='-149730' action='modify' visible='true' lat='8.85327009564' lon='-77.56854065895' />
+  <node id='-149759' action='modify' visible='true' lat='8.84589167652' lon='-77.5989675951' />
+  <node id='-149789' action='modify' visible='true' lat='8.84525560264' lon='-77.60634903431' />
+  <node id='-149802' action='modify' visible='true' lat='8.84724863047' lon='-77.59072784901' />
+  <node id='-149818' action='modify' visible='true' lat='8.84894481586' lon='-77.58235935688' />
+  <node id='-149844' action='modify' visible='true' lat='8.85110744091' lon='-77.57459167957' />
+  <node id='-149853' action='modify' visible='true' lat='8.85212514241' lon='-77.57158760548' />
+  <node id='-149873' action='modify' visible='true' lat='8.84567962021' lon='-77.60085583806' />
+  <node id='-149888' action='modify' visible='true' lat='8.84536158323' lon='-77.60454655766' />
+  <way id='-108302' action='modify' visible='true'>
+    <nd ref='-149476' />
+    <nd ref='-149730' />
+    <nd ref='-149853' />
+    <nd ref='-149844' />
+    <nd ref='-149614' />
+    <nd ref='-149818' />
+    <nd ref='-149702' />
+    <nd ref='-149802' />
+    <nd ref='-149655' />
+    <nd ref='-149759' />
+    <nd ref='-149873' />
+    <nd ref='-149681' />
+    <nd ref='-149888' />
+    <nd ref='-149789' />
+    <nd ref='-144416' />
+    <tag k='name' v='First Expedition' />
+    <tag k='route' v='ferry' />
+  </way>
+</osm>
