@@ -30,6 +30,9 @@ download_ne_data: ## Download data from natural earth
 	curl -o data/ne_shaded_relief.zip https://naciscdn.org/naturalearth/10m/raster/SR_HR.zip
 	unzip -o -d data/ne_10m_shaded_relief data/ne_shaded_relief.zip
 
+download_srtm_data: ## Download data from SRTM
+	@echo "Download 'N08W078.SRTMGL1' from https://earthexplorer.usgs.gov and save the height map at './data/N08W078.hgt'."
+
 download_osm_data: ## Download data from OpenStreetMap
 	curl -o data/new_caledonia.osm https://api.openstreetmap.org/api/0.6/map?bbox=-77.7596,8.7582,-77.5527,8.9939
 
