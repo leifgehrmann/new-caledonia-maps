@@ -47,6 +47,9 @@ preview-light: ## Generates the preview image in light-mode
 preview-dark: ## Generates the preview image in dark-mode
 	poetry run python new_caledonia_maps/preview.py --dark
 
+preview-hillshade: ## Generates hillshade graphics for the preview map
+	poetry run python new_caledonia_maps/preview_hillshade.py
+
 world: world-light world-dark  ## Generates the world maps
 
 world-light: ## Generates the world map in light-mode
@@ -57,11 +60,14 @@ world-dark: ## Generates the world map in dark-mode
 
 panama: panama-light panama-dark  ## Generates the orthographic maps
 
-panama-light: ## Generates the orthographic map in light-mode
+panama-light: ## Generates the panama map in light-mode
 	poetry run python new_caledonia_maps/panama.py --light
 
-panama-dark: ## Generates the orthographic map in dark-mode
+panama-dark: ## Generates the panama map in dark-mode
 	poetry run python new_caledonia_maps/panama.py --dark
+
+panama-hillshade: ## Generates hillshade graphics for the panama map
+	poetry run python new_caledonia_maps/panama_hillshade.py
 
 lint: ## Checks for linting errors
 	poetry run flake8
