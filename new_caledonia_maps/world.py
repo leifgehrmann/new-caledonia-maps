@@ -5,6 +5,7 @@ from typing import List
 import cairocffi.constants
 import click
 import shapefile
+from cairocffi import RadialGradient
 from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.data.canvas_geometry.rect import rect
 from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask
@@ -19,6 +20,7 @@ from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.stripe_filled_polygon_drawer import \
     StripeFilledPolygonDrawer
 from map_engraver.drawable.images.svg import Svg
+from map_engraver.graphicshelper import CairoHelper
 from pangocffi import Alignment
 from shapely.geometry import shape, Point
 from shapely.geometry.base import BaseGeometry
@@ -380,6 +382,26 @@ def render(
         boat_position_right.x - boat_position_left.x
     )
     svg_drawer.draw(canvas)
+
+    shadow = RadialGradient(
+        canvas_width.pt / 2,
+        canvas_height.pt / 2,
+        canvas_width.pt / 2,
+        canvas_width.pt / 2,
+        canvas_height.pt / 8,
+        0
+    )
+    shadow.add_color_stop_rgba(0.00, 0, 0, 0, 0.40)
+    shadow.add_color_stop_rgba(0.03, 0, 0, 0, 0.20)
+    shadow.add_color_stop_rgba(0.07, 0, 0, 0, 0.10)
+    shadow.add_color_stop_rgba(0.15, 0, 0, 0, 0.05)
+    shadow.add_color_stop_rgba(0.30, 0, 0, 0, 0.00)
+    shadow.add_color_stop_rgba(1.00, 0, 0, 0, 0.00)
+
+    canvas.context.set_source(shadow)
+    for mask_geom in mask_canvas.geoms:
+        CairoHelper.draw_polygon(canvas.context, mask_geom)
+        canvas.context.fill()
 
     # Display labels on the map showing each empire.
     draw_annotation_with_flag(
