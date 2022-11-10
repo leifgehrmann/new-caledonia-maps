@@ -6,10 +6,15 @@ __pycache__
 data/ne_*.zip
 data/ne_*/*
 
+# Exclude height-map data
+data/*.hgt
+data/*.hgt.zip
+
 # Exclude data from OpenStreetMap
 data/new_caledonia.osm
 
 # Exclue generated files
+data/preview_shaded_relief/*
 data/panama_shaded_relief/*
 
 cache
