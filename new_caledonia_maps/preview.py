@@ -1,3 +1,5 @@
+import glob
+
 import math
 from pathlib import Path
 
@@ -11,7 +13,10 @@ from map_engraver.data.canvas_geometry.rect import rect
 from map_engraver.data.geo.geo_coordinate import GeoCoordinate
 from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask
 from map_engraver.data.geo_canvas_ops.geo_canvas_scale import GeoCanvasScale
-from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import GeoCanvasTransformersBuilder
+from map_engraver.data.geo_canvas_ops.geo_canvas_transformers_builder import \
+    GeoCanvasTransformersBuilder
+from map_engraver.data.geotiff.canvas_transform import \
+    build_geotiff_crs_within_canvas_matrix
 from map_engraver.data.osm import Parser
 from map_engraver.data.osm.filter import filter_elements
 from map_engraver.data.osm_shapely.natural_coastline import \
@@ -20,6 +25,7 @@ from map_engraver.data.osm_shapely.natural_coastline import \
 from map_engraver.data.osm_shapely.osm_to_shapely import OsmToShapely
 from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
+from map_engraver.drawable.images.bitmap import Bitmap
 from map_engraver.drawable.images.svg import Svg
 from pyproj import CRS
 from shapely.geometry import Point
@@ -37,7 +43,9 @@ def render(
 ):
     name = 'preview-light.svg'
 
-    img_path = Path(__file__).parent.parent.joinpath('img')
+    root_path = Path(__file__).parent.parent
+    data_path = root_path.joinpath('data')
+    img_path = root_path.joinpath('img')
 
     sea_color = (0 / 255, 101 / 255, 204 / 255)
     # sea_color = (200/255, 200/255, 200/255)
@@ -46,6 +54,8 @@ def render(
     beach_color = (255 / 255, 245 / 255, 208 / 255)
     boat_path = (255 / 255, 255 / 255, 255 / 255)
     ship_side_path = img_path.joinpath('ship_side_light.svg')
+    hillshade_glob = 'data/preview_shaded_relief/light_*.svg'
+    height_path = data_path.joinpath('preview_shaded_relief/light_relief.png')
     if dark:
         name = 'preview-dark.svg'
         sea_color = (0 / 255, 36 / 255, 125 / 255)
@@ -53,19 +63,21 @@ def render(
         beach_color = (176 / 255, 176 / 255, 104 / 255)
         boat_path = (184 / 255, 204 / 255, 255 / 255)
         ship_side_path = img_path.joinpath('ship_side_dark.svg')
+        hillshade_glob = 'data/preview_shaded_relief/dark_*.svg'
+        height_path = data_path.joinpath('preview_shaded_relief/dark_relief.png')
 
-    data_path = Path(__file__).parent.parent.joinpath('data')
     nc_path = data_path.joinpath('new_caledonia.osm')
     osm_preview_path = data_path.joinpath('preview.osm')
+    shade_tiff = data_path.joinpath('preview_shaded_relief/projected.tif')
 
     # Read OSM data for New Caledonia
     osm_map = Parser.parse(nc_path)
     osm_to_shapely = OsmToShapely(osm_map)
 
-    land_wgs84 = natural_coastline_to_multi_polygon(
+    water_wgs84 = natural_coastline_to_multi_polygon(
         osm_map,
         (8.780, -77.80, 8.888, -77.5),
-        CoastlineOutputType.LAND
+        CoastlineOutputType.WATER
     )
     beaches_relations = filter_elements(
         osm_map,
@@ -135,24 +147,42 @@ def render(
     # Generate the transformers
     wgs84_to_canvas = builder.build_crs_to_canvas_transformer()
 
-    land_canvas = transform(wgs84_to_canvas, land_wgs84)
+    water_canvas = transform(wgs84_to_canvas, water_wgs84)
     beaches_canvas = transform(wgs84_to_canvas, beaches_wgs84)
     boat_path_canvas = transform(wgs84_to_canvas, boat_path_wgs84)
 
     # Finally, let's get to rendering stuff!
     polygon_drawer = PolygonDrawer()
-    polygon_drawer.fill_color = sea_color
-    polygon_drawer.geoms = [mask_canvas]
-    polygon_drawer.draw(canvas)
-
-    polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = land_color
-    polygon_drawer.geoms = [land_canvas]
+    polygon_drawer.geoms = [mask_canvas]
     polygon_drawer.draw(canvas)
 
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = beach_color
     polygon_drawer.geoms = [beaches_canvas]
+    polygon_drawer.draw(canvas)
+
+    shade_matrix = build_geotiff_crs_within_canvas_matrix(
+            # Add padding to avoid hill-shade edges appearing on map
+            rect(canvas_bbox).buffer(Cu.from_px(10).pt),
+            builder,
+            shade_tiff
+        )
+    canvas.context.save()
+    canvas.context.transform(shade_matrix)
+
+    bitmap = Bitmap(height_path)
+    bitmap.draw(canvas)
+
+    for shade_path in glob.glob(hillshade_glob, root_dir=root_path):
+        svg_drawer = Svg(Path(shade_path))
+        svg_drawer.draw(canvas)
+
+    canvas.context.restore()
+
+    polygon_drawer = PolygonDrawer()
+    polygon_drawer.fill_color = sea_color
+    polygon_drawer.geoms = [water_canvas]
     polygon_drawer.draw(canvas)
 
     line_drawer = LineDrawer()
