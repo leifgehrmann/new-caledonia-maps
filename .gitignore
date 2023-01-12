@@ -16,6 +16,7 @@ data/new_caledonia.osm
 # Exclue generated files
 data/preview_shaded_relief/*
 data/panama_shaded_relief/*
+data/overview_shaded_relief/*
 
 cache
 output

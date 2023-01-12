@@ -68,7 +68,7 @@ def render(
 
     nc_path = data_path.joinpath('new_caledonia.osm')
     osm_preview_path = data_path.joinpath('preview.osm')
-    shade_tiff = data_path.joinpath('preview_shaded_relief/projected.tif')
+    shade_tiff = data_path.joinpath('overview_shaded_relief/projected.tif')
 
     # Read OSM data for New Caledonia
     osm_map = Parser.parse(nc_path)
@@ -160,6 +160,24 @@ def render(
     polygon_drawer.fill_color = beach_color
     polygon_drawer.geoms = [beaches_canvas]
     polygon_drawer.draw(canvas)
+
+    shade_matrix = build_geotiff_crs_within_canvas_matrix(
+            # Add padding to avoid hill-shade edges appearing on map
+            rect(canvas_bbox).buffer(Cu.from_px(10).pt),
+            builder,
+            shade_tiff
+        )
+    canvas.context.save()
+    canvas.context.transform(shade_matrix)
+
+    bitmap = Bitmap(height_path)
+    bitmap.draw(canvas)
+
+    for shade_path in glob.glob(hillshade_glob, root_dir=root_path):
+        svg_drawer = Svg(Path(shade_path))
+        svg_drawer.draw(canvas)
+
+    canvas.context.restore()
 
     polygon_drawer = PolygonDrawer()
     polygon_drawer.fill_color = sea_color

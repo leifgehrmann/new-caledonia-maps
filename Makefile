@@ -69,6 +69,17 @@ panama-dark: ## Generates the panama map in dark-mode
 panama-hillshade: ## Generates hillshade graphics for the panama map
 	poetry run python new_caledonia_maps/panama_hillshade.py
 
+overview: overview-light overview-dark  ## Generates the overview image
+
+overview-light: ## Generates the overview image in light-mode
+	poetry run python new_caledonia_maps/overview.py --light
+
+overview-dark: ## Generates the overview image in dark-mode
+	poetry run python new_caledonia_maps/overview.py --dark
+
+overview-hillshade: ## Generates hillshade graphics for the preview map
+	poetry run python new_caledonia_maps/overview_hillshade.py
+
 lint: ## Checks for linting errors
 	poetry run flake8
 
