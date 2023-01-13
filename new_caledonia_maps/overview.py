@@ -27,9 +27,12 @@ from map_engraver.drawable.geometry.line_drawer import LineDrawer
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 from map_engraver.drawable.images.bitmap import Bitmap
 from map_engraver.drawable.images.svg import Svg
+from pangocffi import Alignment
 from pyproj import CRS
 from shapely.geometry import Point
 from shapely.ops import transform, unary_union
+
+from new_caledonia_maps.flag_annotation import draw_annotation
 
 
 @click.command()
@@ -218,6 +221,46 @@ def render(
         boat_position.x - boat_position_left.x
     )
     svg_drawer.draw(canvas)
+
+    draw_annotation(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.9020, -77.6733, wgs84_crs).tuple
+        )),
+        'right',
+        Cu.from_px(50),
+        'Golden Island\n<span size="80%">Isla del Oro</span>',
+        Alignment.LEFT,
+        show_annotation_point=False
+    )
+
+    draw_annotation(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.8401, -77.6390, wgs84_crs).tuple
+        )),
+        'up',
+        (Cu.from_px(-30), Cu.from_px(-95)),
+        'Fort St. Andrews',
+        Alignment.LEFT,
+        show_annotation_point=True,
+        curve_control_a=(Cu.from_px(0), Cu.from_px(0)),
+        curve_control_b=(Cu.from_px(0), Cu.from_px(70))
+    )
+
+    draw_annotation(
+        canvas,
+        CanvasCoordinate.from_pt(*wgs84_to_canvas(
+            *GeoCoordinate(8.8342, -77.6432, wgs84_crs).tuple
+        )),
+        'up',
+        (Cu.from_px(-45), Cu.from_px(-190)),
+        'Bay of Caledonia',
+        Alignment.LEFT,
+        show_annotation_point=False,
+        curve_control_a=(Cu.from_px(0), Cu.from_px(0)),
+        curve_control_b=(Cu.from_px(0), Cu.from_px(170))
+    )
 
     canvas.close()
 
