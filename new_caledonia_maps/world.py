@@ -6,7 +6,6 @@ import cairocffi.constants
 import click
 import shapefile
 from cairocffi import RadialGradient
-from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.data.canvas_geometry.rect import rect
 from map_engraver.data.geo_canvas_ops.geo_canvas_mask import canvas_mask
 from map_engraver.data.geo_canvas_ops.geo_canvas_scale import GeoCanvasScale
@@ -38,7 +37,7 @@ from map_engraver.data.proj import masks
 
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 
-from new_caledonia_maps.flag_annotation import draw_annotation_with_flag
+from new_caledonia_maps.annotation import draw_annotation_with_flag
 
 
 @click.command()
@@ -222,6 +221,7 @@ def render(
     canvas_height = Cu.from_px(margin_px * 2 + globe_px)
     canvas_builder.set_size(canvas_width, canvas_height)
     canvas = canvas_builder.build()
+    canvas_bbox = canvas_builder.build_bbox()
 
     # Now let's sort out the projection system
     crs = CRS.from_proj4('+proj=ortho +lat_0=20 +lon_0=-50')
@@ -241,14 +241,7 @@ def render(
         Cu.from_px(margin_px + globe_px / 2)
     ))
     wgs84_to_canvas = builder.build_crs_to_canvas_transformer()
-    mask_canvas = canvas_mask(
-        rect(CanvasBbox(
-            CanvasCoordinate.origin(),
-            canvas_width,
-            canvas_height
-        )),
-        builder
-    )
+    mask_canvas = canvas_mask(rect(canvas_bbox), builder)
 
     # Cull away unnecessary geometries, and subtract lakes from land.
     land_shapes = land_shapes.intersection(azimuthal_mask_wgs84)

@@ -6,7 +6,6 @@ from pathlib import Path
 import cairocffi
 import click
 from map_engraver.canvas import CanvasBuilder
-from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.canvas.canvas_coordinate import CanvasCoordinate
 from map_engraver.canvas.canvas_unit import CanvasUnit as Cu
 from map_engraver.data.canvas_geometry.rect import rect
@@ -32,7 +31,8 @@ from pyproj import CRS
 from shapely.geometry import Point
 from shapely.ops import transform, unary_union
 
-from new_caledonia_maps.flag_annotation import draw_annotation
+from new_caledonia_maps.annotation import draw_annotation
+from new_caledonia_maps.map_scale import draw_map_scale
 
 
 @click.command()
@@ -120,13 +120,9 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(720)
-    canvas_bbox = CanvasBbox(
-        CanvasCoordinate.origin(),
-        canvas_width,
-        canvas_height
-    )
     canvas_builder.set_size(canvas_width, canvas_height)
     canvas = canvas_builder.build()
+    canvas_bbox = canvas_builder.build_bbox()
 
     # Now let's sort out the projection system
     crs = CRS.from_proj4('+proj=utm +zone=17')
@@ -260,6 +256,19 @@ def render(
         show_annotation_point=False,
         curve_control_a=(Cu.from_px(0), Cu.from_px(0)),
         curve_control_b=(Cu.from_px(0), Cu.from_px(170))
+    )
+
+    draw_map_scale(
+        canvas,
+        canvas_bbox,
+        builder,
+        2000,  # 1 km
+        4,
+        [
+            (50, '0'),  # A hack to position '0' in a nicer position
+            (1000, '1'),
+            (2225, '2 km')  # A hack to position '2' at the end of the scale
+        ]
     )
 
     canvas.close()

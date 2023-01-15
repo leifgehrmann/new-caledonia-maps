@@ -56,8 +56,7 @@ if not panama_tif_path.exists():
     canvas_height = Cu.from_px(500)
     canvas_bbox = CanvasBbox(
         CanvasCoordinate.origin(),
-        canvas_width,
-        canvas_height
+        CanvasCoordinate(canvas_width, canvas_height)
     )
     canvas_rect = rect(canvas_bbox)
     crs = CRS.from_proj4('+proj=utm +zone=17')

@@ -7,7 +7,6 @@ from typing import List
 import cairocffi.constants
 import click
 import shapefile
-from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.data.canvas_geometry.rect import rect
 from map_engraver.data.geo_canvas_ops.geo_canvas_mask import \
     canvas_mask, canvas_wgs84_mask
@@ -34,7 +33,7 @@ from map_engraver.data.osm_shapely_ops.transform import \
 
 from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 
-from new_caledonia_maps.flag_annotation import draw_annotation_with_flag
+from new_caledonia_maps.annotation import draw_annotation_with_flag
 
 
 @click.command()
@@ -163,16 +162,12 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(500)
-    canvas_bbox = CanvasBbox(
-        CanvasCoordinate.origin(),
-        canvas_width,
-        canvas_height
-    )
     canvas_builder.set_size(
         canvas_width,
         canvas_height
     )
     canvas = canvas_builder.build()
+    canvas_bbox = canvas_builder.build_bbox()
 
     # Now let's sort out the projection system
     crs = CRS.from_proj4('+proj=utm +zone=17')

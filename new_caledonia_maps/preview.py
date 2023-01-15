@@ -6,7 +6,6 @@ from pathlib import Path
 import cairocffi
 import click
 from map_engraver.canvas import CanvasBuilder
-from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.canvas.canvas_coordinate import CanvasCoordinate
 from map_engraver.canvas.canvas_unit import CanvasUnit as Cu
 from map_engraver.data.canvas_geometry.rect import rect
@@ -117,13 +116,9 @@ def render(
     canvas_builder.set_path(path)
     canvas_width = Cu.from_px(720)
     canvas_height = Cu.from_px(328)
-    canvas_bbox = CanvasBbox(
-        CanvasCoordinate.origin(),
-        canvas_width,
-        canvas_height
-    )
     canvas_builder.set_size(canvas_width, canvas_height)
     canvas = canvas_builder.build()
+    canvas_bbox = canvas_builder.build_bbox()
 
     # Now let's sort out the projection system
     crs = CRS.from_proj4('+proj=utm +zone=17')
