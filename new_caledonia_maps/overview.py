@@ -251,7 +251,7 @@ def render(
         )),
         'up',
         (Cu.from_px(-45), Cu.from_px(-190)),
-        'Bay of Caledonia',
+        'Bay of Caledonia\n<span size="80%">Puerto Escocés</span>',
         Alignment.LEFT,
         show_annotation_point=False,
         curve_control_a=(Cu.from_px(0), Cu.from_px(0)),
