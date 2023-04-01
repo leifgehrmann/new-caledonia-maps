@@ -237,7 +237,7 @@ def render(
         )),
         'up',
         (Cu.from_px(-30), Cu.from_px(-95)),
-        'Fort St. Andrews',
+        'Fort St. Andrew',
         Alignment.LEFT,
         show_annotation_point=True,
         curve_control_a=(Cu.from_px(0), Cu.from_px(0)),
