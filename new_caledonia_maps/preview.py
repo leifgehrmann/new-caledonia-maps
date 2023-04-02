@@ -63,7 +63,9 @@ def render(
         boat_path = (184 / 255, 204 / 255, 255 / 255)
         ship_side_path = img_path.joinpath('ship_side_dark.svg')
         hillshade_glob = 'data/preview_shaded_relief/dark_*.svg'
-        height_path = data_path.joinpath('preview_shaded_relief/dark_relief.png')
+        height_path = data_path.joinpath(
+            'preview_shaded_relief/dark_relief.png'
+        )
 
     nc_path = data_path.joinpath('new_caledonia.osm')
     osm_preview_path = data_path.joinpath('preview.osm')

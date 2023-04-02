@@ -1,6 +1,5 @@
 from typing import Tuple, List
 
-import pangocairocffi
 from map_engraver.canvas import Canvas
 from map_engraver.canvas.canvas_bbox import CanvasBbox
 from map_engraver.canvas.canvas_coordinate import CanvasCoordinate
@@ -12,7 +11,6 @@ from map_engraver.drawable.geometry.polygon_drawer import PolygonDrawer
 from map_engraver.drawable.text.pango_drawer import PangoDrawer
 from pangocffi import Alignment
 from shapely import ops
-from shapely.affinity import translate
 from shapely.geometry import Point, Polygon
 
 
@@ -28,13 +26,15 @@ def draw_map_scale(
     This implementation adds a map scale to the top-right of the map.
 
     :param canvas:
+    :param canvas_bbox:
     :param transformers_builder:
+    :param width_in_geo_units:
+    :param segments:
     :param labels:
     :return:
     """
     margin = CanvasUnit.from_px(50)
     line_thickness = CanvasUnit.from_px(2)
-    test = line_thickness == 3
     scale_thickness = line_thickness * 4
 
     width_in_canvas_units = transformers_builder.scale.canvas_units / \

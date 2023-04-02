@@ -57,12 +57,24 @@ overview_output_path = root_path.joinpath(overview_filepath)
 overview_height_tif_path = root_path.joinpath(overview_height_tif_filename)
 overview_tif_path = root_path.joinpath(overview_tif_filename)
 overview_pnm_path = root_path.joinpath(overview_pnm_filename)
-overview_relief_light_tif_path = root_path.joinpath(overview_relief_light_tif_filename)
-overview_relief_light_png_path = root_path.joinpath(overview_relief_light_png_filename)
-overview_relief_dark_tif_path = root_path.joinpath(overview_relief_dark_tif_filename)
-overview_relief_dark_png_path = root_path.joinpath(overview_relief_dark_png_filename)
-overview_relief_light_map_path = root_path.joinpath(overview_relief_light_map_filename)
-overview_relief_dark_map_path = root_path.joinpath(overview_relief_dark_map_filename)
+overview_relief_light_tif_path = root_path.joinpath(
+    overview_relief_light_tif_filename
+)
+overview_relief_light_png_path = root_path.joinpath(
+    overview_relief_light_png_filename
+)
+overview_relief_dark_tif_path = root_path.joinpath(
+    overview_relief_dark_tif_filename
+)
+overview_relief_dark_png_path = root_path.joinpath(
+    overview_relief_dark_png_filename
+)
+overview_relief_light_map_path = root_path.joinpath(
+    overview_relief_light_map_filename
+)
+overview_relief_dark_map_path = root_path.joinpath(
+    overview_relief_dark_map_filename
+)
 
 # Generate the output directory if it doesn't exist.
 overview_output_path.mkdir(parents=True, exist_ok=True)
@@ -208,7 +220,8 @@ for path in glob.glob(overview_svg_filename_match, root_dir=root_path):
             opacity = 0.1
 
     docker_run(
-        'sed -i -e "s/fill=\\"#000000\\"/fill=\\"%s\\" opacity=\\"%f\\"/" %s' % (
+        'sed -i -e "s/fill=\\"#000000\\"/fill=\\"%s\\" opacity=\\"%f\\"/" %s'
+        % (
             color, opacity, path
         )
     )

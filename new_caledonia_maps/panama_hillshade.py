@@ -140,7 +140,8 @@ for path in glob.glob(panama_svg_filename_match, root_dir=root_path):
             opacity = 0.2
 
     docker_run(
-        'sed -i -e "s/fill=\\"#000000\\"/fill=\\"%s\\" opacity=\\"%f\\"/" %s' % (
+        'sed -i -e "s/fill=\\"#000000\\"/fill=\\"%s\\" opacity=\\"%f\\"/" %s'
+        % (
             color, opacity, path
         )
     )
